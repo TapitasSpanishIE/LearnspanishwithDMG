@@ -33,8 +33,7 @@
     .active .topic-code { background: rgba(255,255,255,0.2); color: white; }
 
     .btn-mock { width: 100%; margin-bottom: 20px; padding: 15px; background: #7c3aed; color: white; border: none; border-radius: 10px; font-weight: 800; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px; transition: 0.3s; }
-    .btn-mock:hover { background: #6d28d9; transform: scale(1.02); }
-
+    
     .btn-group { display: flex; gap: 10px; flex-wrap: wrap; margin: 15px 0; }
     button.main-btn { padding: 12px 20px; border-radius: 8px; border: none; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s; }
     button:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -44,13 +43,14 @@
 
     textarea { width: 100%; border: 2px solid #f1f5f9; border-radius: 8px; padding: 15px; font-size: 1rem; font-family: inherit; box-sizing: border-box; resize: vertical; min-height: 100px; }
     
-    .checklist-item { padding: 15px; border-radius: 10px; background: #f8fafc; margin-bottom: 12px; border: 1px solid #e2e8f0; }
+    /* FEEDBACK VISUAL MEJORADO */
+    .checklist-item { padding: 15px; border-radius: 10px; background: #f8fafc; margin-bottom: 12px; border: 1px solid #e2e8f0; transition: 0.3s; }
     .suggestion-box { margin-top: 10px; padding: 10px; background: #fffbeb; border-left: 4px solid var(--warning); border-radius: 4px; font-size: 0.9rem; }
     .status-pill { font-size: 0.7rem; padding: 4px 10px; border-radius: 20px; font-weight: 800; float: right; }
-    .status-ok { background: #d1fae5; color: #065f46; }
-    .status-bad { background: #fee2e2; color: #991b1b; }
+    .status-ok { background: #d1fae5; color: #065f46; border: 1px solid #10b981; }
+    .status-bad { background: #fee2e2; color: #991b1b; border: 1px solid #ef4444; }
 
-    #summaryBox { padding: 20px; border-radius: var(--radius); margin-top: 20px; font-weight: 700; text-align: center; display: none; }
+    #summaryBox { padding: 20px; border-radius: var(--radius); margin-top: 20px; font-weight: 700; text-align: center; display: none; font-size: 1.1rem; }
     .pulse-mic { animation: pulse 1.5s infinite; background: var(--danger) !important; }
     @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
   </style>
@@ -67,7 +67,7 @@
     <aside>
       <button class="btn-mock" onclick="startMockExam()">🎲 Simulacro de Examen (5 temas)</button>
       <div class="card">
-        <h2>🎯 Temas</h2>
+        <h2>🎯 Temas de Examen</h2>
         <div class="topics-container" id="topicsGrid"></div>
       </div>
     </aside>
@@ -76,21 +76,21 @@
       <section class="card">
         <h2 id="displayTitle">Selecciona un tema</h2>
         <div id="displayPrompt" style="margin-bottom: 15px; min-height: 60px;">
-          <p style="color: var(--text-muted)">Haz clic en un tema o inicia un simulacro para empezar.</p>
+          <p style="color: var(--text-muted)">Haz clic en un tema de la izquierda para comenzar la práctica guiada.</p>
         </div>
         
         <div class="btn-group">
           <button id="btnStart" class="main-btn btn-start" onclick="startFlow()" disabled>▶️ Empezar</button>
           <button id="btnStop" class="main-btn btn-stop" onclick="stopListening()" disabled>⏹️ Parar</button>
           <button id="btnAnalyze" class="main-btn btn-analyze" onclick="analyzeNow()" disabled>🧠 Analizar</button>
-          <button class="main-btn" style="background:#f1f5f9" onclick="location.reload()">🔄 Reset</button>
+          <button class="main-btn" style="background:#f1f5f9; color: #64748b;" onclick="location.reload()">🔄 Reset</button>
         </div>
         <p id="status" style="font-weight: 600; font-size: 0.9rem; color: var(--primary);"></p>
       </section>
 
       <section class="card">
-        <h2>📝 Respuesta</h2>
-        <textarea id="transcript" placeholder="Tu respuesta aparecerá aquí..."></textarea>
+        <h2>📝 Tu Respuesta</h2>
+        <textarea id="transcript" placeholder="Tu respuesta aparecerá aquí al hablar..."></textarea>
         <div id="summaryBox"></div>
         <div id="checklist" style="margin-top: 20px;"></div>
       </section>
@@ -99,70 +99,86 @@
 </div>
 
 <script>
-const MONTHS = /(enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|setiembre|octubre|noviembre|diciembre)/u;
-const FAMILY_VOCAB = ["madre","padre","mamá","papa","hermano","hermana","abuelo","abuela","tio","tía","primo","prima","hijo","hija"];
+/* ============================================================
+   CONFIGURACIÓN DE TEMAS Y CRITERIOS (LOGICA FLEXIBLE)
+   ============================================================ */
+const MONTHS = /(enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|setiembre|octubre|noviembre|diciembre)/i;
 
 const TOPICS = {
   about_me: { code: "1A", title: "Háblame de ti", question_es: "Nombre, edad, cumpleaños, celebración y origen.", question_en: "Name, age, birthday, celebration and origin.", speak: "Háblame de ti.", suggestion: { es: "Vivo en Dublín y mi cumpleaños es el diez de mayo.", en: "I live in Dublin and my birthday is on the 10th of May." },
     criteria: [
-      { id:"nombre", label:"Nombre", patterns:[/me llamo/i, /soy/i], hint:"Di tu nombre." },
-      { id:"edad", label:"Edad", patterns:[/tengo\s+\d+/i, "años"], hint:"Di tu edad." },
-      { id:"cumple", label:"Cumpleaños", patterns:[MONTHS, "mi cumple"], hint:"Di tu cumpleaños." }
+      { id:"nombre", label:"Identidad (Nombre)", patterns:[/llamo/i, /soy\s/i, /nombre/i], hint:"Di tu nombre." },
+      { id:"edad", label:"Edad", patterns:[/tengo\s+\d+/i, "años"], hint:"Di cuántos años tienes." },
+      { id:"cumple", label:"Cumpleaños", patterns:[MONTHS, "mi cumple"], hint:"Di cuándo es tu cumpleaños." },
+      { id:"origen", label:"Origen", patterns:[/soy de/i, /vivo en/i, "irlanda", "dublin"], hint:"¿De dónde eres?" }
     ]
   },
   physical: { code: "1B", title: "¿Cómo eres físicamente?", question_es: "Estatura, constitución, pelo y ojos.", question_en: "Height, build, hair and eyes.", speak: "Describe cómo eres físicamente.", suggestion: { es: "Tengo el pelo corto y castaño, y los ojos marrones.", en: "I have short brown hair and brown eyes." },
-    criteria: [ { id:"pelo", label:"Pelo/Ojos", patterns:["pelo","ojos","castaño","moreno","rubio"], hint:"Describe rasgos." } ]
+    criteria: [ 
+      { id:"altura", label:"Altura/Constitución", patterns:["alto","alta","bajo","baja","delgado","delgada"], hint:"Usa adjetivos físicos." },
+      { id:"rasgos", label:"Pelo y Ojos", patterns:["pelo","ojos","marrones","azules","rubio","moreno"], hint:"Describe tu pelo u ojos." }
+    ]
   },
   personality: { code: "1C", title: "Personalidad", question_es: "Describe tu carácter y da una razón.", question_en: "Describe your personality and give a reason.", speak: "Describe tu personalidad.", suggestion: { es: "Soy una persona simpática y muy trabajadora.", en: "I am a friendly and very hard-working person." },
-    criteria: [ { id:"adj", label:"Adjetivos", patterns:["soy","simpático","amable","trabajador"], hint:"Usa adjetivos." } ]
+    criteria: [ 
+        { id:"caracter", label:"Rasgos de carácter", patterns:["simpatico","amable","trabajador","serio","divertido"], hint:"Dime cómo eres." },
+        { id:"porque", label:"Justificación (Porque)", patterns:["porque","ya que","debido"], hint:"Explica por qué eres así." }
+    ]
   },
   family: { code: "2A", title: "La familia", question_es: "Miembros, nombres y relación.", question_en: "Members, names and relationship.", speak: "Habla de tu familia.", suggestion: { es: "Me llevo muy bien con mis padres pero a veces me peleo con mi hermano.", en: "I get on very well with my parents but sometimes I fight with my brother." },
-    criteria: [ { id:"rel", label:"Relación", patterns:["llevo bien","llevo mal","peleo"], hint:"¿Cómo te llevas con ellos?" } ]
+    criteria: [ 
+        { id:"miembros", label:"Miembros de la familia", patterns:["madre","padre","hermano","hermana","somos","familia"], hint:"Menciona a tu familia." },
+        { id:"nombres", label:"Nombres", patterns:[/llama/i], hint:"Di cómo se llaman." },
+        { id:"rel", label:"Relación personal", patterns:["llevo bien","llevo mal","peleo","discuto"], hint:"¿Cómo te llevas con ellos?" } 
+    ]
   },
   best_friend: { code: "3A", title: "Mejor amigo/a", question_es: "Nombre, descripción y tiempo que os conocéis.", question_en: "Name, description and time known.", speak: "Habla de tu mejor amigo.", suggestion: { es: "Mi mejor amigo es muy divertido y nos conocemos desde primaria.", en: "My best friend is very funny and we've known each other since primary school." },
-    criteria: [ { id:"tiempo", label:"Tiempo conocido", patterns:["conocemos","desde","años"], hint:"¿Desde cuándo?" } ]
+    criteria: [ { id:"amigo", label:"Descripción del amigo", patterns:["amigo","amiga","conozco","divertido"], hint:"Háblame de él/ella." } ]
   },
   house: { code: "4A", title: "La casa", question_es: "Tipo de casa y habitación favorita.", question_en: "Type of house and favorite room.", speak: "Habla de tu casa.", suggestion: { es: "Vivo en una casa moderna con un jardín muy grande.", en: "I live in a modern house with a very big garden." },
-    criteria: [ { id:"vivienda", label:"Tipo", patterns:["casa","piso","apartamento"], hint:"¿Dónde vives?" } ]
+    criteria: [ { id:"casa", label:"Detalles de la vivienda", patterns:["casa","piso","chalet","salon","habitacion"], hint:"Describe tu hogar." } ]
   },
   bedroom: { code: "4B", title: "Dormitorio", question_es: "Muebles y descripción.", question_en: "Furniture and description.", speak: "Habla de tu dormitorio.", suggestion: { es: "En mi dormitorio hay una cama, un armario y mi escritorio.", en: "In my bedroom there is a bed, a wardrobe and my desk." },
-    criteria: [ { id:"muebles", label:"Muebles", patterns:["cama","armario","escritorio","silla"], hint:"¿Qué hay?" } ]
+    criteria: [ { id:"muebles", label:"Muebles", patterns:["cama","armario","escritorio","silla","mesa"], hint:"¿Qué muebles tienes?" } ]
   },
   area: { code: "5A", title: "Barrio / Pueblo", question_es: "Ubicación e instalaciones.", question_en: "Location and facilities.", speak: "Habla de tu barrio.", suggestion: { es: "En mi barrio hay un parque, un cine y muchas tiendas.", en: "In my neighbourhood there is a park, a cinema and many shops." },
-    criteria: [ { id:"inst", label:"Instalaciones", patterns:["hay","parque","cine","tiendas"], hint:"¿Qué hay allí?" } ]
+    criteria: [ { id:"lugar", label:"Instalaciones del barrio", patterns:["parque","cine","tiendas","centro","biblioteca"], hint:"¿Qué hay cerca de tu casa?" } ]
   },
   school_general: { code: "6A", title: "Mi instituto", question_es: "Descripción e instalaciones.", question_en: "Description and facilities.", speak: "Habla de tu instituto.", suggestion: { es: "Mi instituto es mixto y las instalaciones son modernas.", en: "My school is co-ed and the facilities are modern." },
-    criteria: [ { id:"inst", label:"Instalaciones", patterns:["gimnasio","biblioteca","patio"], hint:"Instalaciones." } ]
+    criteria: [ { id:"cole", label:"Descripción del colegio", patterns:["instituto","colegio","clases","mixto","moderno"], hint:"¿Cómo es tu centro?" } ]
   },
   school_rules: { code: "6B", title: "Normas escolares", question_es: "Uso del móvil y prohibiciones.", question_en: "Mobile use and prohibitions.", speak: "Habla de las normas.", suggestion: { es: "Está prohibido usar el móvil en las clases.", en: "It is forbidden to use the mobile phone in classes." },
-    criteria: [ { id:"movil", label:"Normas", patterns:["prohibido","móvil","teléfono"], hint:"¿Qué normas hay?" } ]
+    criteria: [ { id:"norma", label:"Reglas/Normas", patterns:["prohibido","debe","puede","movil","chicle"], hint:"¿Qué no se puede hacer?" } ]
   },
   teachers: { code: "6C", title: "Profesores", question_es: "Cómo son y profesor favorito.", question_en: "What they are like and favorite teacher.", speak: "Habla de los profesores.", suggestion: { es: "Mis profesores son estrictos pero ayudan mucho a los alumnos.", en: "My teachers are strict but they help the students a lot." },
-    criteria: [ { id:"fav", label:"Favorito", patterns:["favorito","favorita","ayudan"], hint:"Profesor preferido." } ]
+    criteria: [ { id:"profes", label:"Opinión sobre profesores", patterns:["profesor","maestra","estrictos","simpaticos","ayudan"], hint:"¿Cómo son los profes?" } ]
   },
   uniform: { code: "6D", title: "El uniforme", question_es: "Descripción de las prendas.", question_en: "Description of clothes.", speak: "Habla del uniforme.", suggestion: { es: "Llevo un jersey azul, una camisa blanca y pantalones grises.", en: "I wear a blue jumper, a white shirt and grey trousers." },
-    criteria: [ { id:"ropa", label:"Prendas", patterns:["jersey","camisa","pantalones","falda"], hint:"¿Qué llevas?" } ]
+    criteria: [ { id:"ropa", label:"Prendas de ropa", patterns:["jersey","camisa","pantalones","falda","zapatos"], hint:"¿Qué llevas puesto?" } ]
   },
   free_time: { code: "7A", title: "Tiempo libre", question_es: "Aficiones favoritas.", question_en: "Favorite hobbies.", speak: "Habla de tu tiempo libre.", suggestion: { es: "En mi tiempo libre me gusta escuchar música y jugar al fútbol.", en: "In my free time I like to listen to music and play football." },
-    criteria: [ { id:"hobbies", label:"Hobbies", patterns:["música","fútbol","jugar","deporte"], hint:"¿Qué haces?" } ]
+    criteria: [ { id:"ocio", label:"Hobbies", patterns:["musica","deporte","jugar","leer","cine"], hint:"¿Qué te gusta hacer?" } ]
   },
   weekends: { code: "7B", title: "Fines de semana", question_es: "Rutina de sábados y domingos.", question_en: "Routine on Saturdays and Sundays.", speak: "Habla de tus fines de semana.", suggestion: { es: "Suelo salir con mis amigos los sábados por la tarde.", en: "I usually go out with my friends on Saturday afternoons." },
-    criteria: [ { id:"rutina", label:"Rutina", patterns:["sábados","domingos","salgo","suelo"], hint:"Días libres." } ]
+    criteria: [ { id:"rutina", label:"Actividades de finde", patterns:["sabado","domingo","salgo","amigos"], hint:"¿Qué haces el sábado?" } ]
   },
   last_weekend: { code: "8A", title: "Fin de semana pasado", question_es: "Qué hiciste (pasado).", question_en: "What you did (past).", speak: "Habla del fin de semana pasado.", suggestion: { es: "El fin de semana pasado fui al cine y estudié un poco.", en: "Last weekend I went to the cinema and I studied a bit." },
-    criteria: [ { id:"pasado", label:"Pasado", patterns:["fui","hice","estudié","salí","comí"], hint:"¡Usa verbos en pasado!" } ]
+    criteria: [ { id:"pas", label:"Uso del pasado", patterns:["fui","hice","estudie","sali","comi","jugue"], hint:"Usa verbos en pasado." } ]
   },
   next_weekend: { code: "9A", title: "Próximo fin de semana", question_es: "Planes (futuro).", question_en: "Plans (future).", speak: "Habla del próximo fin de semana.", suggestion: { es: "El próximo fin de semana voy a ir a una fiesta con mis amigos.", en: "Next weekend I am going to go to a party with my friends." },
-    criteria: [ { id:"futuro", label:"Futuro", patterns:["voy a","pienso","quiero"], hint:"Usa 'Voy a' + verbo." } ]
+    criteria: [ { id:"fut", label:"Uso del futuro", patterns:["voy a","pienso","quiero","ire"], hint:"Usa 'Voy a + verbo'." } ]
   },
   future_plans: { code: "10A", title: "Planes de futuro", question_es: "Tras los exámenes y universidad.", question_en: "After exams and university.", speak: "Habla de tus planes.", suggestion: { es: "El año que viene quiero estudiar en la universidad.", en: "Next year I want to study at university." },
-    criteria: [ { id:"univ", label:"Planes", patterns:["universidad","estudiar","trabajar"], hint:"¿Qué harás?" } ]
+    criteria: [ { id:"univ", label:"Estudios/Trabajo", patterns:["universidad","estudiar","trabajar","viajar"], hint:"¿Qué harás el año que viene?" } ]
   },
   spain_holidays: { code: "11A", title: "Vacaciones en España", question_es: "Experiencia y comida.", question_en: "Experience and food.", speak: "Habla de España.", suggestion: { es: "He estado en España y me gusta mucho la comida española.", en: "I have been to Spain and I like Spanish food very much." },
-    criteria: [ { id:"esp", label:"España", patterns:["he estado","fui","comida","paella"], hint:"¿Conoces España?" } ]
+    criteria: [ { id:"esp", label:"España / Comida", patterns:["españa","comida","paella","vacaciones"], hint:"¿Te gusta España?" } ]
   }
 };
 
+/* ============================================================
+   MOTOR DE LA APP
+   ============================================================ */
 let currentKey = null;
 let mockMode = false;
 let mockList = [];
@@ -193,13 +209,13 @@ function selectTopic(key) {
   document.getElementById("btnAnalyze").disabled = false;
   document.getElementById("checklist").innerHTML = "";
   document.getElementById("summaryBox").style.display = "none";
-  setStatus("¡Preparado!");
+  setStatus("Tema seleccionado.");
 }
 
 function startMockExam() {
   mockMode = true;
   mockList = Object.keys(TOPICS).sort(() => 0.5 - Math.random()).slice(0, 5);
-  alert("Iniciando simulacro de 5 temas aleatorios.");
+  alert("Iniciando simulacro de 5 temas. ¡Mucha suerte!");
   selectTopic(mockList.shift());
 }
 
@@ -233,28 +249,42 @@ if(recognition) {
     stopListening();
     analyzeNow();
     if(mockMode && mockList.length > 0) {
-      setTimeout(() => { if(confirm("¿Siguiente tema del simulacro?")) selectTopic(mockList.shift()); }, 2000);
+      setTimeout(() => { if(confirm("¿Siguiente tema del simulacro?")) selectTopic(mockList.shift()); }, 2500);
     }
   };
 }
 
 function analyzeNow() {
   const t = TOPICS[currentKey];
-  const text = document.getElementById("transcript").value.toLowerCase();
+  const textRaw = document.getElementById("transcript").value;
+  // Normalizamos el texto para ignorar tildes y mayúsculas
+  const text = textRaw.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  
   const checklist = document.getElementById("checklist");
   checklist.innerHTML = "";
   let score = 0;
 
   t.criteria.forEach(c => {
-    const ok = c.patterns.some(p => p.test ? p.test(text) : text.includes(p.toString().toLowerCase()));
+    // Verificamos si alguna de las palabras clave está presente
+    const ok = c.patterns.some(p => {
+        const pNormal = p.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\//g, "");
+        return text.includes(pNormal);
+    });
+
     if (ok) score++;
     
     const div = document.createElement("div");
     div.className = "checklist-item";
+    div.style.borderLeft = ok ? "5px solid var(--success)" : "5px solid var(--danger)";
     div.innerHTML = `
-      <span class="status-pill ${ok ? 'status-ok' : 'status-bad'}">${ok ? 'OK' : 'FALTA'}</span>
-      <div style="font-weight:700">${c.label}</div>
-      ${!ok ? `<div class="suggestion-box"><strong>Idea para aprender:</strong><br>🇪🇸 ${t.suggestion.es}<br>🇬🇧 ${t.suggestion.en}</div>` : ''}
+      <span class="status-pill ${ok ? 'status-ok' : 'status-bad'}">${ok ? 'LOGRADO' : 'FALTA'}</span>
+      <div style="font-weight:700; font-size: 1rem; color: ${ok ? '#065f46' : '#991b1b'}">${c.label}</div>
+      ${!ok ? `
+        <div class="suggestion-box">
+          <p style="margin:0 0 5px 0; font-size:0.8rem; font-weight:800; color:var(--warning)">💡 MODELO DE AYUDA:</p>
+          🇪🇸 ${t.suggestion.es}<br>
+          <span style="color:var(--text-muted)">🇬🇧 ${t.suggestion.en}</span>
+        </div>` : `<div style="color:var(--success); font-size:0.85rem; margin-top:5px;">✅ ¡Punto cubierto correctamente!</div>`}
     `;
     checklist.appendChild(div);
   });
@@ -263,7 +293,8 @@ function analyzeNow() {
   summary.style.display = "block";
   const ratio = score / t.criteria.length;
   summary.style.background = ratio === 1 ? "#d1fae5" : ratio >= 0.5 ? "#fef3c7" : "#fee2e2";
-  summary.innerHTML = ratio === 1 ? "🌟 ¡Perfecto!" : "📚 Mira las sugerencias para mejorar.";
+  summary.style.color = ratio === 1 ? "#065f46" : ratio >= 0.5 ? "#92400e" : "#991b1b";
+  summary.innerHTML = ratio === 1 ? "🌟 ¡Perfecto! Has cubierto todos los puntos." : "📚 Revisa los puntos en rojo para completar tu respuesta.";
 }
 
 function setStatus(msg) { document.getElementById("status").textContent = msg; }
