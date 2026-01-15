@@ -125,11 +125,17 @@ const TOPICS = {
         { id:"porque", label:"Justificación (Porque)", patterns:["porque","ya que","debido"], hint:"Explica por qué eres así." }
     ]
   },
-  family: { code: "2A", title: "La familia", question_es: "Miembros, nombres y relación.", question_en: "Members, names and relationship.", speak: "Habla de tu familia.", suggestion: { es: "Me llevo muy bien con mis padres pero a veces me peleo con mi hermano.", en: "I get on very well with my parents but sometimes I fight with my brother." },
+  family: { 
+    code: "2A", 
+    title: "La familia", 
+    question_es: "Miembros, nombres y relación.", 
+    question_en: "Members, names and relationship.", 
+    speak: "Habla de tu familia.", 
+    suggestion: { es: "Me llevo muy bien con mis padres pero a veces me peleo con mi hermano.", en: "I get on very well with my parents but sometimes I fight with my brother." },
     criteria: [ 
-        { id:"miembros", label:"Miembros de la familia", patterns:["madre","padre","hermano","hermana","somos","familia"], hint:"Menciona a tu familia." },
-        { id:"nombres", label:"Nombres", patterns:[/llama/i], hint:"Di cómo se llaman." },
-        { id:"rel", label:"Relación personal", patterns:["llevo bien","llevo mal","peleo","discuto"], hint:"¿Cómo te llevas con ellos?" } 
+        { id:"miembros", label:"Miembros de la familia", patterns:["madre","padre","hermano","hermana","somos","familia","hijo","hija"], hint:"Menciona a tu familia." },
+        { id:"nombres", label:"Nombres", patterns:[/llama/i, "nombre"], hint:"Di cómo se llaman." },
+        { id:"rel", label:"Relación personal", patterns:["llevo","relacion","bien","mal","fenomenal","genial","estupenda","peleo","discuto"], hint:"¿Cómo te llevas con ellos?" } 
     ]
   },
   best_friend: { code: "3A", title: "Mejor amigo/a", question_es: "Nombre, descripción y tiempo que os conocéis.", question_en: "Name, description and time known.", speak: "Habla de tu mejor amigo.", suggestion: { es: "Mi mejor amigo es muy divertido y nos conocemos desde primaria.", en: "My best friend is very funny and we've known each other since primary school." },
