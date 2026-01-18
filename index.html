@@ -3,45 +3,50 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Leaving Cert Spanish AI - Pro</title>
+  <title>Leaving Cert Spanish Coach</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
   <style>
     :root { --primary: #2563eb; --secondary: #db2777; --bg: #f8fafc; --text: #1e293b; }
     body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); padding: 20px; }
-    .container { max-width: 650px; margin: 0 auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+    .container { max-width: 700px; margin: 0 auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
     
     /* Selector de Nivel */
     .level-selector { display: flex; background: #f1f5f9; padding: 5px; border-radius: 12px; margin-bottom: 25px; }
-    .level-btn { flex: 1; padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; transition: 0.3s; }
+    .level-btn { flex: 1; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; transition: 0.3s; font-size: 1rem; color: #64748b; }
     .level-btn.active { background: white; color: var(--primary); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
     .level-btn.hl.active { color: var(--secondary); }
 
-    .topic-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin-bottom: 25px; }
-    .topic-btn { padding: 12px; border: 1px solid #e2e8f0; border-radius: 12px; background: white; cursor: pointer; font-size: 0.85rem; font-weight: 600; text-align: center; }
-    .topic-btn.active { border-color: var(--primary); background: #eff6ff; color: var(--primary); }
+    /* Rejilla de Temas */
+    .topic-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin-bottom: 25px; }
+    .topic-btn { padding: 15px; border: 1px solid #e2e8f0; border-radius: 12px; background: white; cursor: pointer; font-size: 0.9rem; font-weight: 600; text-align: center; transition: 0.2s; color: #475569; }
+    .topic-btn:hover { background: #f8fafc; }
+    .topic-btn.active { border-color: var(--primary); background: #eff6ff; color: var(--primary); transform: scale(1.02); box-shadow: 0 4px 12px rgba(37,99,235,0.1); }
 
-    .question-card { background: #fdf2f8; border-left: 5px solid var(--secondary); padding: 20px; border-radius: 0 12px 12px 0; margin-bottom: 20px; }
-    .hl-badge { font-size: 0.7rem; background: var(--secondary); color: white; padding: 2px 6px; border-radius: 4px; vertical-align: middle; margin-right: 5px; }
+    .question-card { background: #fdf2f8; border-left: 5px solid var(--secondary); padding: 20px; border-radius: 0 12px 12px 0; margin-bottom: 20px; animation: slideIn 0.3s ease; }
+    @keyframes slideIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
     
-    textarea { width: 100%; border: 2px solid #e2e8f0; border-radius: 15px; padding: 15px; min-height: 150px; box-sizing: border-box; font-size: 1rem; margin-bottom: 15px; transition: 0.3s; }
+    .hl-badge { font-size: 0.75rem; background: var(--secondary); color: white; padding: 3px 8px; border-radius: 4px; vertical-align: middle; margin-right: 8px; font-weight: 800; letter-spacing: 0.5px; }
+    
+    textarea { width: 100%; border: 2px solid #e2e8f0; border-radius: 15px; padding: 15px; min-height: 120px; box-sizing: border-box; font-size: 1rem; margin-bottom: 15px; font-family: inherit; }
     textarea:focus { border-color: var(--secondary); outline: none; }
 
-    .btn-main { width: 100%; padding: 18px; background: var(--text); color: white; border: none; border-radius: 15px; font-weight: 800; cursor: pointer; font-size: 1.1rem; }
-    .btn-main:disabled { opacity: 0.5; }
+    .btn-main { width: 100%; padding: 16px; background: var(--text); color: white; border: none; border-radius: 15px; font-weight: 800; cursor: pointer; font-size: 1.1rem; transition: transform 0.1s; }
+    .btn-main:active { transform: scale(0.98); }
+    .btn-main:disabled { opacity: 0.5; cursor: wait; }
 
-    #result { margin-top: 30px; display: none; }
+    #result { margin-top: 30px; display: none; border-top: 2px dashed #e2e8f0; padding-top: 20px; }
     .feedback-box { padding: 20px; border-radius: 15px; background: #f8fafc; border: 1px solid #e2e8f0; }
-    .error-item { margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #e2e8f0; }
-    .error-item:last-child { border: none; }
-    .eng-note { color: #64748b; font-size: 0.9rem; font-style: italic; display: block; margin-top: 4px; }
+    .error-item { margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #e2e8f0; }
+    .error-item:last-child { border: none; padding-bottom: 0; }
+    .eng-note { color: #64748b; font-size: 0.9rem; font-style: italic; display: block; margin-top: 6px; background: #f1f5f9; padding: 5px 10px; border-radius: 6px; }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <div style="text-align: center; margin-bottom: 20px;">
-    <h1 style="margin:0;">🇪🇸 LC Spanish Coach</h1>
-    <p style="color: #64748b;">Preparación para el examen oral</p>
+  <div style="text-align: center; margin-bottom: 25px;">
+    <h1 style="margin:0; color: var(--primary);">🇪🇸 LC Spanish Coach</h1>
+    <p style="color: #64748b; margin-top: 5px;">Tu preparador personal para el Oral</p>
   </div>
 
   <div class="level-selector">
@@ -53,50 +58,85 @@
 
   <div id="exerciseArea" style="display:none;">
     <div class="question-card">
-      <div id="qText" style="font-weight: 700; font-size: 1.1rem;"></div>
+      <div id="qText" style="font-weight: 700; font-size: 1.1rem; line-height: 1.5;"></div>
     </div>
 
-    <textarea id="userInput" placeholder="Dicta o escribe tu respuesta aquí..."></textarea>
+    <textarea id="userInput" placeholder="Escribe tu respuesta aquí..."></textarea>
+    
     <button class="btn-main" id="btnAction" onclick="analyze()">✨ Evaluar Respuesta</button>
-    <p id="status" style="text-align:center; font-size:0.9rem; color: #64748b;"></p>
+    <p id="status" style="text-align:center; font-size:0.9rem; color: #64748b; margin-top: 10px;"></p>
   </div>
 
   <div id="result">
     <div class="feedback-box">
-      <div id="scoreDisplay" style="font-size: 1.5rem; font-weight: 800; margin-bottom: 10px;"></div>
-      <div id="generalFeedback" style="margin-bottom: 20px; line-height: 1.6;"></div>
+      <div id="scoreDisplay" style="font-size: 1.5rem; font-weight: 800; margin-bottom: 10px; color: var(--primary);"></div>
+      <div id="generalFeedback" style="margin-bottom: 20px; line-height: 1.6; color: #334155;"></div>
       <div id="errorsList"></div>
     </div>
-    <button class="btn-main" style="margin-top:20px; background:#e2e8f0; color:var(--text);" onclick="location.reload()">🔄 Otro tema</button>
+    <button class="btn-main" style="margin-top:20px; background:#e2e8f0; color:var(--text);" onclick="resetApp()">🔄 Probar otro tema</button>
   </div>
 </div>
 
 <script>
-const API_KEY = "AIzaSyDpFm2h1um1-UecmrUlzlPoGyg-W3tx38Q"; // RECUERDA PONER TU CLAVE
+// ============================================
+// 👇 PEGA TU CLAVE AQUÍ ABAJO
+// ============================================
+const API_KEY = "AIzaSyDpFm2h1um1-UecmrUlzlPoGyg-W3tx38Q"; 
 
 let currentLevel = 'OL';
 let currentTopic = null;
 
+// Base de datos completa con preguntas diferenciadas
 const DATA = [
   {
-    title: "Colegio: Instalaciones",
-    OL: "¿Cómo es tu instituto? ¿Es grande o pequeño?",
-    HL: "Describe las instalaciones de tu centro. ¿Crees que están bien equipadas para los estudiantes?"
+    title: "1. Sobre Mí",
+    OL: "¿Cómo te llamas, cuántos años tienes y cuándo es tu cumpleaños?",
+    HL: "Preséntate detalladamente. ¿Cómo te describirías a ti mismo y qué cualidades valoras más en una persona?"
   },
   {
-    title: "Colegio: Asignaturas",
-    OL: "¿Qué asignaturas estudias y cuál es tu favorita?",
-    HL: "Háblame de las asignaturas que has elegido. ¿Por qué crees que es importante estudiar idiomas hoy en día?"
+    title: "2. Familia",
+    OL: "¿Cuántas personas hay en tu familia? ¿Cómo se llaman?",
+    HL: "¿Crees que es difícil la convivencia en familia hoy en día? Háblame de tu relación con tus padres o hermanos."
   },
   {
-    title: "Colegio: Normas",
+    title: "3. Casa",
+    OL: "¿Cómo es tu casa? ¿Tienes tu propia habitación?",
+    HL: "Describe tu casa ideal. ¿Prefieres la vida en una casa en el campo o en un apartamento en la ciudad? ¿Por qué?"
+  },
+  {
+    title: "4. Barrio",
+    OL: "¿Cómo es tu barrio? ¿Hay un parque o un cine?",
+    HL: "Analiza las ventajas y desventajas de vivir en tu barrio. ¿Qué instalaciones faltan para los jóvenes?"
+  },
+  {
+    title: "5. Colegio: General",
+    OL: "¿Cómo es tu colegio? ¿Es mixto o solo de chicos/chicas?",
+    HL: "Haz una descripción crítica de tu instituto. ¿Qué opinas de las instalaciones y el ambiente estudiantil?"
+  },
+  {
+    title: "5. Colegio: Asignaturas",
+    OL: "¿Qué asignaturas estudias? ¿Cuál es tu favorita?",
+    HL: "Justifica tu elección de asignaturas. ¿Crees que el sistema educativo prepara bien para la vida real?"
+  },
+  {
+    title: "5. Colegio: Normas",
     OL: "¿Llevas uniforme? ¿Te gusta?",
-    HL: "En tu opinión, ¿son necesarias las reglas y el uniforme en los colegios o limitan la libertad individual?"
+    HL: "¿Estás a favor o en contra del uniforme escolar? ¿Qué cambiarías de las normas de tu colegio si fueras el director?"
   },
   {
-    title: "Familia y Casa",
-    OL: "¿Cuántas personas hay en tu familia? ¿Cómo es tu casa?",
-    HL: "Háblame de tu entorno familiar. ¿Crees que es mejor vivir en una casa en el campo o en un piso en la ciudad?"
+    title: "7. Hobbies",
+    OL: "¿Qué haces en tu tiempo libre? ¿Te gusta el deporte?",
+    HL: "¿Crees que los jóvenes hoy en día tienen suficiente tiempo libre? ¿Qué papel juega el deporte en tu vida?"
+  },
+  {
+    title: "8. Pasado",
+    OL: "¿Qué hiciste el fin de semana pasado?",
+    HL: "Relata un evento memorable del pasado (un viaje, una celebración). ¿Cómo te sentiste?"
+  },
+  {
+    title: "10. Futuro",
+    OL: "¿Qué vas a hacer después de los exámenes?",
+    HL: "¿Cuáles son tus planes a largo plazo? ¿Te gustaría tomarte un año sabático o ir directo a la universidad?"
   }
 ];
 
@@ -109,7 +149,8 @@ function setLevel(lvl) {
 
 function init() {
   const grid = document.getElementById('topicGrid');
-  DATA.forEach((item, index) => {
+  grid.innerHTML = "";
+  DATA.forEach((item) => {
     const btn = document.createElement('button');
     btn.className = 'topic-btn';
     btn.innerText = item.title;
@@ -125,58 +166,88 @@ function init() {
 
 function updateQuestion() {
   document.getElementById('exerciseArea').style.display = 'block';
-  const badge = currentLevel === 'HL' ? '<span class="hl-badge">HL</span>' : '';
+  document.getElementById('result').style.display = 'none';
+  const badge = currentLevel === 'HL' ? '<span class="hl-badge">HIGHER LEVEL</span>' : '';
   document.getElementById('qText').innerHTML = badge + currentTopic[currentLevel];
+}
+
+function resetApp() {
+    document.getElementById('userInput').value = "";
+    document.getElementById('result').style.display = 'none';
+    document.getElementById('exerciseArea').style.display = 'block';
 }
 
 async function analyze() {
   const text = document.getElementById('userInput').value;
-  if(text.length < 5) return alert("¡Escribe un poco más!");
+  if(text.length < 5) return alert("Por favor, escribe una respuesta un poco más larga.");
 
   const btn = document.getElementById('btnAction');
   btn.disabled = true;
-  btn.innerText = "⏳ Analizando...";
+  btn.innerText = "⏳ El examinador está corrigiendo...";
+  document.getElementById("status").innerText = "Conectando con Google AI (Modelo Pro)...";
 
   const prompt = `
-    Eres un examinador del Leaving Cert de España. Evalúas a un alumno de nivel ${currentLevel === 'HL' ? 'Superior (B2)' : 'Ordinario (A2)'}.
+    Actúa como un examinador oficial del Leaving Cert de Irlanda.
+    Nivel del alumno: ${currentLevel === 'HL' ? 'HIGHER LEVEL (B1+/B2)' : 'ORDINARY LEVEL (A2)'}.
     
-    CONTEXTO:
-    - Pregunta: "${currentTopic[currentLevel]}"
-    - Respuesta: "${text}"
+    Pregunta: "${currentTopic[currentLevel]}"
+    Respuesta del alumno: "${text}"
 
-    INSTRUCCIONES DE FEEDBACK:
-    1. Nota: 0-100.
-    2. Comentario: Motivador y corto (en español).
-    3. Errores: Lista de errores. Cada error debe tener:
-       - "original": El fragmento con error.
-       - "correction": La forma correcta.
-       - "explanation_en": Una explicación breve en INGLÉS de por qué está mal.
+    Instrucciones:
+    1. Si es Ordinary Level, sé amable y corrige lo básico.
+    2. Si es Higher Level, sé exigente con la gramática, tiempos verbales y vocabulario rico.
+    3. Para CADA error, dame una explicación bilingüe (Español + Inglés).
 
-    Responde SOLAMENTE en este formato JSON:
+    Responde SOLO con este JSON:
     {
       "score": 0,
-      "feedback": "",
-      "errors": [{"original": "", "correction": "", "explanation_en": ""}]
+      "feedback": "Comentario general en español",
+      "errors": [
+        {
+          "original": "texto erroneo", 
+          "correction": "texto corregido", 
+          "explanation_en": "Explicación breve del error en INGLÉS para el alumno"
+        }
+      ]
     }
   `;
 
   try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${API_KEY}`, {
+    // Usamos 'gemini-pro-latest' que aparecía en tu lista de disponibles
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-latest:generateContent?key=${API_KEY}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
     });
 
     const data = await response.json();
+
+    // 🛑 SEGURIDAD: Comprobamos si Google dio error antes de leer nada
+    if (data.error) {
+        throw new Error("Google Error: " + data.error.message);
+    }
+
+    if (!data.candidates || !data.candidates[0].content) {
+        throw new Error("No se recibió respuesta de la IA. Inténtalo de nuevo.");
+    }
+
     const cleanJson = data.candidates[0].content.parts[0].text.replace(/```json|```/g, "").trim();
-    const result = JSON.parse(cleanJson);
+    let result;
+    
+    try {
+        result = JSON.parse(cleanJson);
+    } catch (parseError) {
+        throw new Error("Error leyendo la respuesta de la IA. Prueba otra vez.");
+    }
     
     showResult(result);
+
   } catch (e) {
-    alert("Error: " + e.message);
+    alert("❌ Ocurrió un problema: " + e.message);
   } finally {
     btn.disabled = false;
     btn.innerText = "✨ Evaluar Respuesta";
+    document.getElementById("status").innerText = "";
   }
 }
 
@@ -184,21 +255,25 @@ function showResult(data) {
   document.getElementById('exerciseArea').style.display = 'none';
   document.getElementById('result').style.display = 'block';
   
-  document.getElementById('scoreDisplay').innerText = `Nota: ${data.score}%`;
+  const scoreDiv = document.getElementById('scoreDisplay');
+  scoreDiv.innerText = `Nota: ${data.score}%`;
+  scoreDiv.style.color = data.score >= 70 ? "#166534" : (data.score >= 40 ? "#854d0e" : "#991b1b");
+
   document.getElementById('generalFeedback').innerText = data.feedback;
   
   const list = document.getElementById('errorsList');
-  list.innerHTML = "<strong>Correcciones:</strong><br><br>";
+  list.innerHTML = "<strong>Correcciones detalladas:</strong><br><br>";
   
-  if(data.errors.length === 0 || !data.errors[0].original) {
-    list.innerHTML += "✅ ¡Excelente! No se han detectado errores importantes.";
+  if(!data.errors || data.errors.length === 0) {
+    list.innerHTML += "✅ ¡Perfecto! No he encontrado errores graves.";
   } else {
     data.errors.forEach(err => {
       list.innerHTML += `
         <div class="error-item">
-          <span style="color: #ef4444;">✗ ${err.original}</span> → 
-          <span style="color: #10b981; font-weight:700;">✓ ${err.correction}</span>
-          <span class="eng-note">${err.explanation_en}</span>
+          <span style="color: #ef4444; text-decoration: line-through;">${err.original}</span> 
+          <span>➡️</span>
+          <span style="color: #10b981; font-weight:700;">${err.correction}</span>
+          <span class="eng-note">💡 ${err.explanation_en}</span>
         </div>`;
     });
   }
