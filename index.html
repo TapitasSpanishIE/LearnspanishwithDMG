@@ -157,20 +157,26 @@ let currentLevel = 'OL';
 let currentTopic = null;
 let isMockExam = false; 
 
+// 👇 DATOS (Temas extraídos de tus Words - LISTA COMPLETA 15 TEMAS)
 const DATA = [
   { title: "1. Yo mismo", OL: "¿Cómo te llamas? ¿Cuándo es tu cumpleaños? ¿Puedes describirte físicamente?", HL: "Háblame de ti. Describe tu personalidad (virtudes y defectos) y tu físico." },
-  { title: "2. Mi familia", OL: "¿Cuántas personas hay en tu familia? ¿Tienes hermanos?", HL: "Háblame de tu familia. ¿Te llevas bien con tus padres y hermanos? ¿Hay conflictos?" },
-  { title: "3. Mis amigos", OL: "¿Tienes muchos amigos? ¿Cómo se llama tu mejor amigo?", HL: "Háblame de tu mejor amigo. ¿Tenéis los mismos intereses? ¿Por qué es especial?" },
-  { title: "4. Mi casa", OL: "¿Vives en una casa o en un piso? ¿Cómo es tu dormitorio?", HL: "Describe tu casa ideal. ¿Prefieres vivir en el campo o en la ciudad?" },
-  { title: "5. Mi barrio", OL: "¿Cómo es tu barrio? ¿Hay tiendas o un parque?", HL: "Háblame de tu barrio. ¿Qué instalaciones hay para los jóvenes? ¿Hay delincuencia?" },
-  { title: "6. Mi pueblo/ciudad", OL: "¿Vives en el campo o en la ciudad? ¿Qué hay para los turistas?", HL: "Háblame de tu pueblo o ciudad. ¿Qué cambiarías de tu localidad si pudieras?" },
-  { title: "7. Mi colegio", OL: "¿Cómo es tu colegio? ¿Es mixto? ¿Llevas uniforme?", HL: "Háblame de tu instituto. ¿Qué opinas de las normas y del sistema de puntos?" },
-  { title: "8. Mis asignaturas", OL: "¿Qué asignaturas estudias? ¿Cuál es tu favorita?", HL: "Háblame de tus asignaturas. ¿Crees que estudiar idiomas es importante hoy en día?" },
-  { title: "9. Rutina diaria", OL: "¿A qué hora te levantas? ¿Qué haces después del colegio?", HL: "Describe tu rutina diaria. ¿Te resulta difícil compaginar el estudio con tu tiempo libre?" },
-  { title: "10. Pasatiempos", OL: "¿Qué haces en tus ratos libres? ¿Te gusta el deporte?", HL: "Háblame de tus aficiones. ¿Por qué es importante tener hobbies para la salud mental?" },
-  { title: "11. Tareas domésticas", OL: "¿Ayudas en casa? ¿Haces tu cama?", HL: "Háblame de las tareas del hogar. ¿Crees que el reparto es justo en tu casa?" }
+  { title: "2. Mi familia", OL: "¿Cuántas personas hay en tu familia? ¿Tienes hermanos? ¿Eres hijo único?", HL: "Háblame de tu familia. ¿Cómo son tus padres y hermanos? ¿Te llevas bien con ellos?" },
+  { title: "3. Mis amigos", OL: "¿Tienes muchos amigos? ¿Cómo se llama tu mejor amigo/a?", HL: "Háblame de tu mejor amigo. ¿Tenéis los mismos intereses? ¿Por qué es tu mejor amigo?" },
+  { title: "4. Mi casa", OL: "¿Vives en una casa o en un piso? ¿Cómo es tu dormitorio?", HL: "Describe tu casa. ¿Qué es lo que más te gusta y lo que menos te gusta de tu hogar?" },
+  { title: "5. Mi barrio", OL: "¿Cómo es tu barrio? ¿Hay un parque o tiendas?", HL: "Háblame de tu barrio. ¿Hay problemas sociales? ¿Qué instalaciones hay para los jóvenes?" },
+  { title: "6. Mi pueblo/ciudad", OL: "¿Vives en el campo o en la ciudad? ¿Te gusta tu pueblo?", HL: "Háblame de tu pueblo o ciudad. ¿Prefieres la vida urbana o la rural? Justifica tu respuesta." },
+  { title: "7. Mi colegio", OL: "¿Cómo es tu colegio? ¿Es mixto? ¿Llevas uniforme?", HL: "Háblame de tu instituto. ¿Qué opinas de las normas y del uniforme?" },
+  { title: "8. Mis asignaturas", OL: "¿Qué asignaturas estudias? ¿Cuál es tu favorita?", HL: "Háblame de tus asignaturas. ¿Crees que el sistema educativo prepara bien para la vida?" },
+  { title: "9. Rutina diaria", OL: "¿A qué hora te levantas? ¿Qué haces después del colegio?", HL: "Describe tu rutina diaria. ¿Te resulta difícil compaginar el estudio con el tiempo libre?" },
+  { title: "10. Pasatiempos", OL: "¿Qué haces en tus ratos libres? ¿Te gusta el deporte?", HL: "Háblame de tus aficiones. ¿Por qué es importante tener pasatiempos para la salud mental?" },
+  { title: "11. Tareas domésticas", OL: "¿Ayudas en casa? ¿Haces tu cama?", HL: "Háblame de las tareas del hogar. ¿Crees que el reparto de tareas es justo en tu casa?" },
+  { title: "12. Vacaciones", OL: "¿Qué hiciste el verano pasado? ¿Has estado alguna vez en España?", HL: "Háblame de tus vacaciones. ¿Prefieres quedarte en Irlanda o viajar al extranjero? ¿Por qué?" },
+  { title: "13. Planes de Futuro", OL: "¿Qué vas a hacer el año que viene? ¿Quieres ir a la universidad?", HL: "Háblame de tus planes para el futuro. ¿Qué carrera te gustaría estudiar y por qué?" },
+  // 👇 LOS DOS NUEVOS
+  { title: "14. Fin de semana pasado", OL: "¿Qué hiciste el fin de semana pasado? ¿Saliste con tus amigos?", HL: "Háblame de lo que hiciste el fin de semana pasado. ¿Hiciste algo especial o te quedaste en casa?" },
+  { title: "15. Próximo fin de semana", OL: "¿Qué vas a hacer el fin de semana que viene? ¿Vas a estudiar?", HL: "Háblame de tus planes para el próximo fin de semana. ¿Tienes pensado salir o tienes que estudiar?" }
 ];
-
+  
 const PAST_QUESTIONS = {
     OL: ["¿Qué hiciste el fin de semana pasado?", "¿Adónde fuiste el verano pasado?", "¿Qué hiciste ayer después del colegio?"],
     HL: ["Háblame de lo que hiciste el fin de semana pasado.", "Descríbeme tus últimas vacaciones.", "Cuéntame una experiencia pasada memorable."]
