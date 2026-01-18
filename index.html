@@ -3,21 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Leaving Cert Spanish Coach - Bilingüe</title>
+  <title>LC Spanish Coach - Manual Completo</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
   <style>
     :root { --primary: #2563eb; --secondary: #db2777; --bg: #f8fafc; --text: #1e293b; }
     body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); padding: 20px; }
-    .container { max-width: 750px; margin: 0 auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+    .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
     
     .level-selector { display: flex; background: #f1f5f9; padding: 5px; border-radius: 12px; margin-bottom: 25px; }
     .level-btn { flex: 1; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; transition: 0.3s; font-size: 1rem; color: #64748b; }
     .level-btn.active { background: white; color: var(--primary); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
     .level-btn.hl.active { color: var(--secondary); }
 
-    .topic-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-bottom: 25px; }
-    .topic-btn { padding: 15px; border: 1px solid #e2e8f0; border-radius: 12px; background: white; cursor: pointer; font-size: 0.85rem; font-weight: 600; text-align: center; color: #475569; }
-    .topic-btn.active { border-color: var(--primary); background: #eff6ff; color: var(--primary); transform: scale(1.02); }
+    /* Grid ajustado para que quepan todos los temas bien */
+    .topic-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-bottom: 25px; }
+    .topic-btn { padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; background: white; cursor: pointer; font-size: 0.85rem; font-weight: 600; text-align: center; color: #475569; transition: 0.2s; }
+    .topic-btn:hover { background: #f1f5f9; }
+    .topic-btn.active { border-color: var(--primary); background: #eff6ff; color: var(--primary); transform: scale(1.02); box-shadow: 0 2px 8px rgba(37,99,235,0.1); }
 
     .question-card { background: #fdf2f8; border-left: 5px solid var(--secondary); padding: 20px; border-radius: 0 12px 12px 0; margin-bottom: 20px; }
     .hl-badge { font-size: 0.75rem; background: var(--secondary); color: white; padding: 3px 8px; border-radius: 4px; vertical-align: middle; margin-right: 8px; font-weight: 800; }
@@ -43,7 +45,7 @@
 <div class="container">
   <div style="text-align: center; margin-bottom: 25px;">
     <h1 style="margin:0; color: var(--primary);">🇪🇸 LC Spanish Coach</h1>
-    <p style="color: #64748b; margin-top: 5px;">Bilingüe / Bilingual Feedback Edition</p>
+    <p style="color: #64748b; margin-top: 5px;">Basado en tu Manual de Conversación</p>
   </div>
 
   <div class="level-selector">
@@ -57,7 +59,7 @@
     <div class="question-card">
       <div id="qDisplay" style="font-weight: 700; font-size: 1.1rem; line-height: 1.5;"></div>
     </div>
-    <textarea id="userInput" placeholder="Escribe tu respuesta..."></textarea>
+    <textarea id="userInput" placeholder="Escribe tu respuesta aquí..."></textarea>
     <button class="btn-main" id="btnAction" onclick="analyze()">✨ Evaluar Respuesta</button>
   </div>
 
@@ -74,23 +76,85 @@
 </div>
 
 <script>
-// CONFIGURACIÓN DE CLAVE API
+// ============================================
+// 👇 TUS CLAVES AQUÍ
+// ============================================
 const parteA = "AIzaSyASf_PIq7es0iPVt"; 
 const parteB = "VUMt8Kn1Ll3qSpQQxg"; 
+
+// NO TOQUES ESTA LÍNEA 👇
 const API_KEY = parteA + parteB;
 
 let currentLevel = 'OL';
 let currentTopic = null;
 
+// 👇 LISTA COMPLETA BASADA EN TU ÍNDICE DEL WORD
 const DATA = [
-  { title: "1. Yo mismo", OL: "¿Cómo te llamas y cuántos años tienes? ¿Puedes describirte físicamente?", HL: "Háblame de ti. Describe tu personalidad y qué tipo de persona eres." },
-  { title: "2. Mi Familia", OL: "¿Cuántas personas hay en tu familia? ¿Tienes hermanos?", HL: "Háblame de tu familia. ¿Te llevas bien con tus padres y hermanos?" },
-  { title: "3. Mi Casa", OL: "¿Dónde vives? ¿Cómo es tu casa? Describe tu dormitorio.", HL: "Describe tu casa ideal. ¿Prefieres vivir en el campo o en la ciudad?" },
-  { title: "4. Mi Barrio", OL: "¿Cómo es tu barrio? ¿Hay muchas instalaciones?", HL: "¿Qué problemas sociales hay en tu barrio? ¿Hay suficientes distracciones para jóvenes?" },
-  { title: "6. Mi Colegio", OL: "¿Cómo se llama tu colegio? ¿Es mixto? ¿Hay muchas instalaciones?", HL: "Háblame de las normas y el uniforme. ¿Crees que el sistema educativo es bueno?" },
-  { title: "8. Rutina Diaria", OL: "¿A qué hora te levantas? ¿Qué haces después del colegio?", HL: "Describe un día típico. ¿Crees que los estudiantes tienen demasiado estrés?" },
-  { title: "10. Tareas Domésticas", OL: "¿Ayudas en casa? ¿Qué sueles hacer?", HL: "¿Crees que el reparto de tareas domésticas entre hombres y mujeres es justo?" },
-  { title: "12. Futuro", OL: "¿Qué vas a hacer después de los exámenes?", HL: "Háblame de tus planes de carrera y futuro universitario." }
+  { 
+    title: "1. Yo mismo", 
+    OL: "¿Cómo te llamas, cuántos años tienes y cuándo es tu cumpleaños? ¿Cómo eres físicamente?", 
+    HL: "Háblame de ti. Describe tu personalidad, tus virtudes y tus defectos." 
+  },
+  { 
+    title: "2. Mi familia", 
+    OL: "¿Cuántas personas hay en tu familia? ¿Quiénes son? ¿Tienes hermanos?", 
+    HL: "Háblame de tu familia. ¿Te llevas bien con todos o hay conflictos generacionales?" 
+  },
+  { 
+    title: "3. Mis amigos", 
+    OL: "¿Tienes un mejor amigo o amiga? ¿Cómo se llama? ¿Qué hacéis juntos?", 
+    HL: "Háblame de tu mejor amigo. ¿Qué cualidades valoras más en una amistad verdadera?" 
+  },
+  { 
+    title: "4. Mi casa", 
+    OL: "¿Cómo es tu casa? ¿Tienes tu propio dormitorio? ¿Te gusta tu casa?", 
+    HL: "Háblame de tu casa. Si pudieras cambiar algo de tu hogar, ¿qué sería?" 
+  },
+  { 
+    title: "5. Mi barrio", 
+    OL: "¿Vives en un barrio tranquilo o ruidoso? ¿Qué hay en tu barrio?", 
+    HL: "Háblame de tu barrio. ¿Existen problemas sociales como la delincuencia o el desempleo?" 
+  },
+  { 
+    title: "6. Mi pueblo/ciudad", 
+    OL: "¿Vives en el campo o en la ciudad? ¿Qué pueden hacer los turistas allí?", 
+    HL: "Háblame de tu pueblo o ciudad. ¿Prefieres la vida urbana o la rural? Justifica tu respuesta." 
+  },
+  { 
+    title: "7. Mi colegio", 
+    OL: "¿Cómo es tu colegio? ¿Es mixto? ¿A qué hora empiezan las clases?", 
+    HL: "Háblame de tu instituto. ¿Qué opinas de las normas y del sistema de puntos del Leaving Cert?" 
+  },
+  { 
+    title: "8. Mis asignaturas", 
+    OL: "¿Qué asignaturas estudias? ¿Cuál es tu favorita y cuál no te gusta?", 
+    HL: "Háblame de tus asignaturas. ¿Crees que el currículum actual prepara bien a los estudiantes para la vida?" 
+  },
+  { 
+    title: "9. Rutina diaria", 
+    OL: "¿A qué hora te levantas? ¿Qué haces después de cenar? ¿A qué hora te acuestas?", 
+    HL: "Háblame de tu rutina diaria. ¿Te resulta difícil compaginar los estudios con tu tiempo libre?" 
+  },
+  { 
+    title: "10. Pasatiempos", 
+    OL: "¿Qué haces en tu tiempo libre? ¿Te gusta el deporte o la música? ¿Tocas algún instrumento?", 
+    HL: "Háblame de tus aficiones. ¿Por qué es importante tener hobbies para la salud mental?" 
+  },
+  { 
+    title: "11. Tareas domésticas", 
+    OL: "¿Ayudas en casa? ¿Haces la cama o lavas los platos?", 
+    HL: "Háblame de las tareas del hogar. ¿Crees que los jóvenes deberían ayudar más en casa?" 
+  },
+  { 
+    title: "12. Vacaciones", 
+    OL: "¿Qué hiciste el verano pasado? ¿Has estado alguna vez en España?", 
+    HL: "Háblame de tus vacaciones ideales. ¿Prefieres el turismo de sol y playa o viajar de mochilero?" 
+  },
+  { 
+    title: "13. Planes de Futuro", 
+    OL: "¿Qué vas a hacer el año que viene? ¿Quieres ir a la universidad?", 
+    HL: "Háblame de tus planes para el futuro. ¿Te gustaría trabajar en el extranjero o quedarte en Irlanda?" 
+  }
 ];
 
 function setLevel(lvl) {
@@ -119,7 +183,7 @@ function init() {
 function updateQuestion() {
   document.getElementById('exerciseArea').style.display = 'block';
   document.getElementById('result').style.display = 'none';
-  const badge = currentLevel === 'HL' ? '<span class="hl-badge">HIGHER LEVEL</span>' : '';
+  const badge = currentLevel === 'HL' ? '<span class="hl-badge">HL</span>' : '';
   document.getElementById('qDisplay').innerHTML = badge + currentTopic[currentLevel];
 }
 
@@ -131,30 +195,39 @@ function resetApp() {
 
 async function analyze() {
   const text = document.getElementById('userInput').value;
-  if(text.length < 2) return alert("Escribe algo...");
+  if(text.length < 2) return alert("Por favor, escribe algo (Please write something).");
 
   const btn = document.getElementById('btnAction');
   btn.disabled = true;
-  btn.innerText = "⏳ Analizando...";
+  btn.innerText = "⏳ Analizando/Analyzing...";
 
+  // PROMPT BILINGÜE Y CALIBRADO
   const prompt = `
-    Eres un profesor de español para el Leaving Cert en Irlanda.
-    Nivel: ${currentLevel}.
-    Pregunta: "${currentTopic[currentLevel]}"
-    Respuesta: "${text}"
+    Role: Spanish Leaving Cert Examiner (Ireland).
+    Level: ${currentLevel} (${currentLevel === 'HL' ? 'High/B2' : 'Ordinary/A1-A2'}).
+    Topic Question: "${currentTopic[currentLevel]}"
+    Student Answer: "${text}"
 
-    INSTRUCCIONES DE EVALUACIÓN:
-    1. Feedback Bilingüe: El campo "feedback_es" debe ser en español y "feedback_en" su traducción/adaptación al inglés.
-    2. Vocabulario de Vivienda: No confundas "un cuarto de baño" con una fracción matemática. Es un término correcto para baño.
-    3. Ortografía: Ignora tildes y puntuación (es un examen oral).
-    4. Criterio OL: Muy generoso. Si se entiende, nota > 85%.
+    INSTRUCTIONS:
+    1. Feedback MUST be Bilingual: Provide "feedback_es" (Spanish) and "feedback_en" (English translation).
+    2. SCORING (CRITICAL):
+       - Ordinary Level (OL): Be VERY generous. Brief answers (e.g., "Es grande") are 100% correct if they answer the question. Ignore grammar errors unless comprehension is impossible.
+       - Higher Level (HL): Be stricter. Expect connectors, opinions, and complex verbs.
+    3. IGNORE: Do NOT penalize punctuation (commas, periods) or accents/tildes. It's an oral transcript.
+    4. Vocabulary: Accept "cuarto de baño" as standard for "bathroom/toilet".
 
-    RESPONDE SOLO EN JSON:
+    OUTPUT JSON ONLY:
     {
-      "score": 0,
-      "feedback_es": "Comentario en español",
-      "feedback_en": "Feedback in English",
-      "errors": [{"original": "", "correction": "", "explanation_en": ""}]
+      "score": 0-100,
+      "feedback_es": "Comentario motivador en español",
+      "feedback_en": "Motivating feedback in English",
+      "errors": [
+        {
+          "original": "error text", 
+          "correction": "corrected text", 
+          "explanation_en": "Brief explanation in English"
+        }
+      ]
     }
   `;
 
@@ -166,10 +239,19 @@ async function analyze() {
     });
 
     const data = await response.json();
+
+    if (data.error) throw new Error("Google Error: " + data.error.message);
+    if (!data.candidates) throw new Error("No response from AI");
+
     const cleanJson = data.candidates[0].content.parts[0].text.replace(/```json|```/g, "").trim();
-    const result = JSON.parse(cleanJson);
+    let result;
+    try {
+        const jsonMatch = cleanJson.match(/\{[\s\S]*\}/);
+        result = JSON.parse(jsonMatch ? jsonMatch[0] : cleanJson);
+    } catch (e) { throw new Error("JSON Error"); }
     
     showResult(result);
+
   } catch (e) {
     alert("Error: " + e.message);
   } finally {
@@ -192,8 +274,8 @@ function showResult(data) {
   const list = document.getElementById('errorsList');
   list.innerHTML = "<strong>Correcciones / Corrections:</strong><br><br>";
   
-  if(!data.errors || data.errors.length === 0 || data.errors[0].original === "") {
-    list.innerHTML += "✅ ¡Sin errores gramaticales! / No grammatical errors!";
+  if(!data.errors || data.errors.length === 0) {
+    list.innerHTML += "✅ ¡Perfecto! / Perfect!";
   } else {
     data.errors.forEach(err => {
       list.innerHTML += `
