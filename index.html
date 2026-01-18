@@ -6,34 +6,25 @@
   <title>Leaving Cert Spanish - Oral AI Practice</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --primary: #2563eb; --bg: #f1f5f9; --text-main: #1e293b; --radius: 16px;
-    }
+    :root { --primary: #2563eb; --bg: #f1f5f9; --text-main: #1e293b; --radius: 16px; }
     body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-main); padding: 20px; line-height: 1.5; }
     .container { max-width: 600px; margin: 0 auto; background: white; padding: 25px; border-radius: var(--radius); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); }
-    
     h1 { text-align: center; color: var(--primary); margin-bottom: 5px; }
     .subtitle { text-align: center; color: #64748b; font-size: 0.9rem; margin-bottom: 25px; }
-
     .topic-selector { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 20px; }
     .topic-btn { flex: 0 0 auto; padding: 8px 16px; background: #e2e8f0; border: none; border-radius: 20px; font-weight: 600; cursor: pointer; color: #475569; }
     .topic-btn.active { background: var(--primary); color: white; }
-
     .question-box { background: #eff6ff; border: 2px solid #dbeafe; padding: 20px; border-radius: 12px; margin-bottom: 20px; text-align: center; font-size: 1.1rem; font-weight: 600; color: #1e3a8a; }
-
     textarea { width: 100%; border: 2px solid #cbd5e1; border-radius: 12px; padding: 15px; font-size: 1rem; min-height: 120px; box-sizing: border-box; font-family: inherit; margin-bottom: 15px; }
     textarea:focus { outline: none; border-color: var(--primary); }
-
     .btn-analyze { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: transform 0.1s; }
     .btn-analyze:active { transform: scale(0.98); }
     .btn-analyze:disabled { opacity: 0.7; cursor: wait; }
-
     #resultArea { margin-top: 25px; padding-top: 20px; border-top: 2px dashed #e2e8f0; display: none; }
     .score-badge { display: inline-block; padding: 5px 15px; border-radius: 20px; font-weight: 800; font-size: 0.9rem; margin-bottom: 10px; }
     .score-high { background: #dcfce7; color: #166534; }
     .score-mid { background: #fef9c3; color: #854d0e; }
     .score-low { background: #fee2e2; color: #991b1b; }
-    
     li { margin-bottom: 8px; }
   </style>
 </head>
@@ -42,19 +33,12 @@
 <div class="container">
   <h1>🇪🇸 Práctica Oral LC</h1>
   <div class="subtitle">AI Feedback for Leaving Certificate Students</div>
-
   <div class="topic-selector" id="topicList"></div>
-
-  <div class="question-box" id="qDisplay">
-    👋 Selecciona un tema arriba para empezar
-  </div>
-
+  <div class="question-box" id="qDisplay">👋 Selecciona un tema arriba para empezar</div>
   <textarea id="userInput" placeholder="1. Pulsa el micrófono de tu teclado.&#10;2. Dicta tu respuesta en español..."></textarea>
-
   <button class="btn-analyze" id="btnAction" onclick="analyze()" disabled>✨ Evaluar mi respuesta</button>
-  
   <div id="status" style="text-align: center; margin-top: 10px; color: #64748b; font-size: 0.9rem;"></div>
-
+  
   <div id="resultArea">
     <div id="scoreBadge" class="score-badge"></div>
     <div id="feedbackText"></div>
@@ -63,6 +47,9 @@
 </div>
 
 <script>
+// ===============================================
+// PEGA AQUÍ TU CLAVE NUEVA (Dentro de las comillas)
+// ===============================================
 const API_KEY = "AIzaSyDpFm2h1um1-UecmrUlzlPoGyg-W3tx38Q"; 
 
 const TOPICS = [
@@ -79,9 +66,6 @@ const TOPICS = [
 
 let currentTopic = null;
 
-/* =========================================
-   2. INTERFAZ
-   ========================================= */
 const list = document.getElementById("topicList");
 TOPICS.forEach(t => {
   const btn = document.createElement("button");
@@ -100,9 +84,6 @@ function setTopic(t, btn) {
   document.getElementById("resultArea").style.display = "none";
 }
 
-/* =========================================
-   3. CEREBRO IA (GEMINI)
-   ========================================= */
 async function analyze() {
   const text = document.getElementById("userInput").value;
   if(text.length < 5) return alert("Respuesta muy corta. Inténtalo de nuevo.");
@@ -116,9 +97,8 @@ async function analyze() {
     Eres un examinador del Leaving Cert de español.
     Pregunta: "${currentTopic.q}"
     Respuesta del alumno: "${text}"
-    
     Evalúa estrictamente gramática y vocabulario.
-    Responde SOLO con este JSON:
+    Responde SOLO con este JSON puro (sin bloques de código):
     {
       "nota": (0-100),
       "comentario": "Breve feedback motivador",
@@ -127,23 +107,34 @@ async function analyze() {
   `;
 
   try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-001:generateContent?key=${API_KEY}`, {
+    // Intentamos primero con el modelo específico que suele funcionar mejor
+    let model = "gemini-1.5-flash"; 
+    
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${API_KEY}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
     });
 
     const data = await response.json();
-if (data.error) {
-    alert("Error de Google: " + data.error.message);
-    return;
-}
-const raw = data.candidates[0].content.parts[0].text.replace(/```json|```/g, "").trim();
+
+    if (data.error) {
+       throw new Error(data.error.message);
+    }
+
+    if (!data.candidates || !data.candidates[0].content) {
+       throw new Error("Google no devolvió texto. Inténtalo de nuevo.");
+    }
+
+    // Limpiamos la respuesta para obtener solo el JSON
+    const rawText = data.candidates[0].content.parts[0].text;
+    const cleanJson = rawText.replace(/```json/g, "").replace(/```/g, "").trim();
+    const result = JSON.parse(cleanJson);
     
     renderResult(result);
 
   } catch (e) {
-    alert("Error: " + e.message);
+    alert("Error: " + e.message + "\n\n(Comprueba tu API Key y conexión)");
   } finally {
     btn.disabled = false;
     btn.innerText = "✨ Evaluar mi respuesta";
@@ -163,7 +154,7 @@ function renderResult(data) {
   
   const ul = document.getElementById("errorsList");
   ul.innerHTML = "";
-  if(data.errores.length === 0) {
+  if(!data.errores || data.errores.length === 0) {
     ul.innerHTML = "<li>✅ ¡Sin errores graves detectados!</li>";
   } else {
     data.errores.forEach(err => {
