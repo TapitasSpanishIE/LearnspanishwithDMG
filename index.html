@@ -59,10 +59,28 @@
 
     /* Footer / Sobre Mí */
     .footer-section { margin-top: 50px; padding-top: 30px; border-top: 1px solid #e2e8f0; text-align: center; }
-    .profile-img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 15px; border: 3px solid var(--primary); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-    .revolut-btn { background: #000; color: white; text-decoration: none; padding: 12px 25px; border-radius: 50px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; transition: transform 0.2s; font-size: 0.95rem; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
-    .revolut-btn:hover { transform: scale(1.05); background: #333; }
-    .disclaimer { font-size: 0.8rem; color: #94a3b8; margin-top: 20px; max-width: 600px; margin-left: auto; margin-right: auto; line-height: 1.5; }
+    .profile-img { width: 85px; height: 85px; border-radius: 50%; object-fit: cover; margin-bottom: 15px; border: 3px solid var(--primary); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    
+    /* Botón Revolut Mejorado */
+    .revolut-btn { 
+      background: #000; 
+      color: white; 
+      text-decoration: none; 
+      padding: 14px 28px; 
+      border-radius: 50px; 
+      font-weight: 700; 
+      display: inline-flex; 
+      align-items: center; 
+      gap: 10px; 
+      transition: all 0.2s ease; 
+      font-size: 1rem; 
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
+      margin-top: 10px;
+    }
+    .revolut-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.3); background: #222; }
+    
+    .disclaimer { font-size: 0.85rem; color: #64748b; margin-top: 25px; max-width: 600px; margin-left: auto; margin-right: auto; line-height: 1.6; }
+    .disclaimer strong { color: var(--primary); }
 
   </style>
 </head>
@@ -74,16 +92,16 @@
     <p class="subtitle">Preparación Inteligente para el Oral</p>
     
     <button class="info-toggle" onclick="toggleInfo()">
-      ℹ️ Instrucciones y Trucos (Instructions)
+      ℹ️ Instructions & Tips
     </button>
     
     <div id="infoBox" class="info-box">
       <strong>Instrucciones Básicas / Basic Instructions:</strong>
       <ul>
-        <li>🗣️ <strong>Teclado / Keyboard:</strong> Para usar el dictado de voz, <strong>debes añadir el teclado "Español"</strong> en los ajustes de tu iPhone/Android. Si usas el teclado en inglés, el móvil no entenderá lo que dices. (Add Spanish Keyboard in settings for voice typing).</li>
-        <li>🎓 <strong>Niveles:</strong> 'Ordinary Level' es más relajado. 'Higher Level' te pedirá vocabulario más rico.</li>
-        <li>🎲 <strong>Simulacro:</strong> Te hará 5 preguntas seguidas (Generales + Pasado + Futuro).</li>
-        <li>🤖 <strong>Corrección:</strong> La IA ignorará las comas y tildes, ¡céntrate en hablar!</li>
+        <li>🗣️ <strong>Keyboard Settings:</strong> You MUST add the <strong>"Spanish" keyboard</strong> in your phone settings. If you use the English keyboard, the voice dictation won't understand your Spanish pronunciation.</li>
+        <li>🎓 <strong>Levels:</strong> 'Ordinary Level' focuses on basic communication. 'Higher Level' requires richer vocabulary and opinions.</li>
+        <li>🎲 <strong>Mock Exam:</strong> This mode will ask you 5 questions in a row (General topics + Past + Future).</li>
+        <li>🤖 <strong>Correction:</strong> The AI ignores punctuation (commas, accents) so you can focus on speaking naturally!</li>
       </ul>
     </div>
   </header>
@@ -128,20 +146,21 @@
   </div>
 
   <div class="footer-section">
-    <img src="david.png" alt="David Martín" class="profile-img" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'">
+    <img src="david.PNG" alt="David Martín" class="profile-img" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'">
     
-    <p style="font-weight: 700; margin: 5px 0;">Creado por David Martín</p>
-    <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 15px;">
-      Profesor de Español | Preparador de Leaving Cert
+    <p style="font-weight: 700; margin: 5px 0; font-size: 1.1rem;">Created by David Martín</p>
+    <p style="font-size: 0.95rem; color: #64748b; margin-bottom: 20px;">
+      Spanish Teacher & Leaving Cert Examiner
     </p>
 
     <a href="https://revolut.me/davidkhy4/pocket/TbT6B5Grkq" target="_blank" class="revolut-btn">
-      <span>💳</span> Apoya el Proyecto (Revolut)
+      <span>☕</span> Support the Project
     </a>
 
     <p class="disclaimer">
-      Este es un proyecto educativo independiente y gratuito para ayudar a estudiantes de Junior y Leaving Cert. 
-      Las donaciones son 100% voluntarias y ayudan a mantener el servidor y desarrollar nuevas herramientas. ¡Gracias por tu apoyo!
+      This tool is <strong>100% free</strong> and always will be. <br>
+      However, your support is the greatest motivation for me to continue creating high-quality resources for Junior & Leaving Cert students.<br> 
+      If this app helps you prepare, a coffee would be much appreciated!
     </p>
   </div>
 
@@ -151,8 +170,8 @@
 // ============================================
 // 👇 TUS CLAVES AQUÍ
 // ============================================
-const parteA = "PON_AQUI_PARTE_A"; 
-const parteB = "PON_AQUI_PARTE_B"; 
+const parteA = "AIzaSyASf_PIq7es0iPVt"; 
+const parteB = "VUMt8Kn1Ll3qSpQQxg"; 
 
 const API_KEY = parteA + parteB;
 
@@ -224,7 +243,6 @@ function speakText() {
     
     // Intento de mejorar la voz en iOS/Android
     const voices = window.speechSynthesis.getVoices();
-    // Buscamos una voz en español
     const bestVoice = voices.find(v => v.name.includes('Google') && v.lang.includes('es')) || 
                       voices.find(v => v.name.includes('Monica')) || 
                       voices.find(v => v.lang.includes('es'));
@@ -343,7 +361,7 @@ async function analyze() {
     const jsonMatch = cleanJson.match(/\{[\s\S]*\}/); 
     const result = JSON.parse(jsonMatch ? jsonMatch[0] : cleanJson);
     
-    showResult(result, text); // Pasamos también el texto del alumno
+    showResult(result, text); 
 
   } catch (e) {
     alert("Error: " + e.message);
