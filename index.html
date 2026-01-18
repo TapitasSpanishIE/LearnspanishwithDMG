@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>LC Spanish Coach - Oral Exam Mode</title>
+  <title>LC Spanish Coach - Oficial</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
   <style>
     :root { --primary: #2563eb; --secondary: #db2777; --bg: #f8fafc; --text: #1e293b; }
@@ -15,14 +15,52 @@
     .level-btn.active { background: white; color: var(--primary); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
     .level-btn.hl.active { color: var(--secondary); }
 
-    .topic-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-bottom: 25px; }
+    /* Botón de Simulacro */
+    .mock-btn {
+      width: 100%;
+      padding: 18px;
+      margin-bottom: 25px;
+      background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-weight: 800;
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3);
+      transition: transform 0.2s;
+    }
+    .mock-btn:hover { transform: scale(1.02); }
+
+    .topic-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin-bottom: 25px; }
     .topic-btn { padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; background: white; cursor: pointer; font-size: 0.85rem; font-weight: 600; text-align: center; color: #475569; transition: 0.2s; }
     .topic-btn:hover { background: #f1f5f9; }
     .topic-btn.active { border-color: var(--primary); background: #eff6ff; color: var(--primary); transform: scale(1.02); box-shadow: 0 2px 8px rgba(37,99,235,0.1); }
 
-    .question-card { background: #fdf2f8; border-left: 5px solid var(--secondary); padding: 20px; border-radius: 0 12px 12px 0; margin-bottom: 20px; }
+    .question-card { background: #fdf2f8; border-left: 5px solid var(--secondary); padding: 25px; border-radius: 0 12px 12px 0; margin-bottom: 20px; position: relative; }
     .hl-badge { font-size: 0.75rem; background: var(--secondary); color: white; padding: 3px 8px; border-radius: 4px; vertical-align: middle; margin-right: 8px; font-weight: 800; }
     
+    .audio-btn {
+      margin-top: 15px;
+      background: white;
+      border: 1px solid #e2e8f0;
+      padding: 8px 16px;
+      border-radius: 50px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text);
+      transition: 0.2s;
+    }
+    .audio-btn:hover { background: #f1f5f9; border-color: var(--primary); color: var(--primary); }
+
     textarea { width: 100%; border: 2px solid #e2e8f0; border-radius: 15px; padding: 15px; min-height: 120px; box-sizing: border-box; font-size: 1rem; margin-bottom: 15px; font-family: inherit; }
     textarea:focus { border-color: var(--secondary); outline: none; }
 
@@ -44,7 +82,7 @@
 <div class="container">
   <div style="text-align: center; margin-bottom: 25px;">
     <h1 style="margin:0; color: var(--primary);">🇪🇸 LC Spanish Coach</h1>
-    <p style="color: #64748b; margin-top: 5px;">Basado en tu Manual de Conversación</p>
+    <p style="color: #64748b; margin-top: 5px;">Basado en tus Preguntas Oficiales</p>
   </div>
 
   <div class="level-selector">
@@ -52,12 +90,20 @@
     <button class="level-btn hl" id="btnHL" onclick="setLevel('HL')">Higher Level</button>
   </div>
 
+  <button class="mock-btn" onclick="startMockExam()">
+    🎲 Simulacro de Examen (5 Preguntas)
+  </button>
+
   <div class="topic-grid" id="topicGrid"></div>
 
   <div id="exerciseArea" style="display:none;">
     <div class="question-card">
-      <div id="qDisplay" style="font-weight: 700; font-size: 1.1rem; line-height: 1.5;"></div>
+      <div id="qDisplay" style="font-weight: 700; font-size: 1.15rem; line-height: 1.6;"></div>
+      <button class="audio-btn" onclick="speakText()">
+        🔊 Escuchar Preguntas
+      </button>
     </div>
+    
     <textarea id="userInput" placeholder="Escribe tu respuesta aquí..."></textarea>
     <button class="btn-main" id="btnAction" onclick="analyze()">✨ Evaluar Respuesta</button>
   </div>
@@ -76,91 +122,69 @@
 
 <script>
 // ============================================
-// 👇 TUS CLAVES AQUÍ
+// 👇 TUS CLAVES AQUÍ (DIVIDIDAS)
 // ============================================
 const parteA = "AIzaSyASf_PIq7es0iPVt"; 
 const parteB = "VUMt8Kn1Ll3qSpQQxg"; 
 
-// NO TOQUES ESTA LÍNEA 👇
 const API_KEY = parteA + parteB;
 
 let currentLevel = 'OL';
 let currentTopic = null;
+let isMockExam = false; 
 
-// 👇 LISTA COMPLETA BASADA EN TU ÍNDICE DEL WORD
+// 👇 BANCO DE TEMAS GENERALES (Extracto de tus documentos)
 const DATA = [
-  { 
-    title: "1. Yo mismo", 
-    OL: "¿Cómo te llamas, cuántos años tienes y cuándo es tu cumpleaños? ¿Cómo eres físicamente?", 
-    HL: "Háblame de ti. Describe tu personalidad, tus virtudes y tus defectos." 
-  },
-  { 
-    title: "2. Mi familia", 
-    OL: "¿Cuántas personas hay en tu familia? ¿Quiénes son? ¿Tienes hermanos?", 
-    HL: "Háblame de tu familia. ¿Te llevas bien con todos o hay conflictos generacionales?" 
-  },
-  { 
-    title: "3. Mis amigos", 
-    OL: "¿Tienes un mejor amigo o amiga? ¿Cómo se llama? ¿Qué hacéis juntos?", 
-    HL: "Háblame de tu mejor amigo. ¿Qué cualidades valoras más en una amistad verdadera?" 
-  },
-  { 
-    title: "4. Mi casa", 
-    OL: "¿Cómo es tu casa? ¿Tienes tu propio dormitorio? ¿Te gusta tu casa?", 
-    HL: "Háblame de tu casa. Si pudieras cambiar algo de tu hogar, ¿qué sería?" 
-  },
-  { 
-    title: "5. Mi barrio", 
-    OL: "¿Vives en un barrio tranquilo o ruidoso? ¿Qué hay en tu barrio?", 
-    HL: "Háblame de tu barrio. ¿Existen problemas sociales como la delincuencia o el desempleo?" 
-  },
-  { 
-    title: "6. Mi pueblo/ciudad", 
-    OL: "¿Vives en el campo o en la ciudad? ¿Qué pueden hacer los turistas allí?", 
-    HL: "Háblame de tu pueblo o ciudad. ¿Prefieres la vida urbana o la rural? Justifica tu respuesta." 
-  },
-  { 
-    title: "7. Mi colegio", 
-    OL: "¿Cómo es tu colegio? ¿Es mixto? ¿A qué hora empiezan las clases?", 
-    HL: "Háblame de tu instituto. ¿Qué opinas de las normas y del sistema de puntos del Leaving Cert?" 
-  },
-  { 
-    title: "8. Mis asignaturas", 
-    OL: "¿Qué asignaturas estudias? ¿Cuál es tu favorita y cuál no te gusta?", 
-    HL: "Háblame de tus asignaturas. ¿Crees que el currículum actual prepara bien a los estudiantes para la vida?" 
-  },
-  { 
-    title: "9. Rutina diaria", 
-    OL: "¿A qué hora te levantas? ¿Qué haces después de cenar? ¿A qué hora te acuestas?", 
-    HL: "Háblame de tu rutina diaria. ¿Te resulta difícil compaginar los estudios con tu tiempo libre?" 
-  },
-  { 
-    title: "10. Pasatiempos", 
-    OL: "¿Qué haces en tu tiempo libre? ¿Te gusta el deporte o la música? ¿Tocas algún instrumento?", 
-    HL: "Háblame de tus aficiones. ¿Por qué es importante tener hobbies para la salud mental?" 
-  },
-  { 
-    title: "11. Tareas domésticas", 
-    OL: "¿Ayudas en casa? ¿Haces la cama o lavas los platos?", 
-    HL: "Háblame de las tareas del hogar. ¿Crees que los jóvenes deberían ayudar más en casa?" 
-  },
-  { 
-    title: "12. Vacaciones", 
-    OL: "¿Qué hiciste el verano pasado? ¿Has estado alguna vez en España?", 
-    HL: "Háblame de tus vacaciones ideales. ¿Prefieres el turismo de sol y playa o viajar de mochilero?" 
-  },
-  { 
-    title: "13. Planes de Futuro", 
-    OL: "¿Qué vas a hacer el año que viene? ¿Quieres ir a la universidad?", 
-    HL: "Háblame de tus planes para el futuro. ¿Te gustaría trabajar en el extranjero o quedarte en Irlanda?" 
-  }
+  { title: "1. Yo mismo", OL: "¿Cómo te llamas? ¿Cuándo es tu cumpleaños? ¿Puedes describirte físicamente?", HL: "Háblame de ti. Describe tu personalidad (virtudes y defectos) y tu físico." },
+  { title: "2. Mi familia", OL: "¿Cuántas personas hay en tu familia? ¿Tienes hermanos? ¿Eres hijo único?", HL: "Háblame de tu familia. ¿Cómo son tus padres y hermanos? ¿Te llevas bien con ellos?" },
+  { title: "3. Mis amigos", OL: "¿Tienes muchos amigos? ¿Cómo se llama tu mejor amigo/a?", HL: "Háblame de tu mejor amigo. ¿Tenéis los mismos intereses? ¿Por qué es tu mejor amigo?" },
+  { title: "4. Mi casa", OL: "¿Vives en una casa o en un piso? ¿Cómo es tu dormitorio?", HL: "Describe tu casa. ¿Qué es lo que más te gusta y lo que menos te gusta de tu hogar?" },
+  { title: "5. Mi barrio", OL: "¿Cómo es tu barrio? ¿Hay un parque o tiendas?", HL: "Háblame de tu barrio. ¿Hay problemas sociales? ¿Qué instalaciones hay para los jóvenes?" },
+  { title: "6. Mi pueblo/ciudad", OL: "¿Vives en el campo o en la ciudad? ¿Te gusta tu pueblo?", HL: "Háblame de tu pueblo o ciudad. ¿Prefieres la vida urbana o la rural? Justifica tu respuesta." },
+  { title: "7. Mi colegio", OL: "¿Cómo es tu colegio? ¿Es mixto? ¿Llevas uniforme?", HL: "Háblame de tu instituto. ¿Qué opinas de las normas y del sistema de puntos?" },
+  { title: "8. Mis asignaturas", OL: "¿Qué asignaturas estudias? ¿Cuál es tu favorita?", HL: "Háblame de tus asignaturas. ¿Crees que el sistema educativo prepara bien para la vida?" },
+  { title: "9. Rutina diaria", OL: "¿A qué hora te levantas? ¿Qué haces después del colegio?", HL: "Describe tu rutina diaria. ¿Te resulta difícil compaginar el estudio con el tiempo libre?" },
+  { title: "10. Pasatiempos", OL: "¿Qué haces en tus ratos libres? ¿Te gusta el deporte?", HL: "Háblame de tus aficiones. ¿Por qué es importante tener pasatiempos para la salud mental?" },
+  { title: "11. Tareas domésticas", OL: "¿Ayudas en casa? ¿Haces tu cama?", HL: "Háblame de las tareas del hogar. ¿Crees que el reparto de tareas es justo en tu casa?" }
 ];
+
+// 👇 BANCO DE PASADO (Copiado de 'EL EXAMEN ORAL PREGUNTAS.docx')
+const PAST_QUESTIONS = {
+    OL: [
+        "¿Qué hiciste el fin de semana pasado?",
+        "¿Qué hiciste ayer después del colegio?",
+        "¿Adónde fuiste de vacaciones el verano pasado?",
+        "¿Cómo celebraste tu último cumpleaños?"
+    ],
+    HL: [
+        "Háblame de lo que hiciste el fin de semana pasado.",
+        "Descríbeme tus últimas vacaciones. ¿Adónde fuiste y qué hiciste?",
+        "Cuéntame una experiencia pasada memorable.",
+        "¿Cómo celebraste tu cumpleaños el año pasado?"
+    ]
+};
+
+// 👇 BANCO DE FUTURO Y CONDICIONALES (Copiado de 'Preguntas examen oral.docx')
+const FUTURE_QUESTIONS = {
+    OL: [
+        "¿Qué harás mañana?",
+        "¿Qué vas a hacer el fin de semana que viene?",
+        "¿Qué planes tienes para el próximo verano?",
+        "¿Qué vas a hacer cuando termines el colegio?"
+    ],
+    HL: [
+        "¿Cuáles son tus planes para el futuro inmediato (este fin de semana)?",
+        "Háblame de tus planes para el año que viene. ¿Irás a la universidad?",
+        "¿Qué harías si fueras el presidente de Irlanda?",
+        "¿Qué harías si fueras rico o famoso?"
+    ]
+};
 
 function setLevel(lvl) {
   currentLevel = lvl;
   document.getElementById('btnOL').classList.toggle('active', lvl === 'OL');
   document.getElementById('btnHL').classList.toggle('active', lvl === 'HL');
-  if(currentTopic) updateQuestion();
+  if(currentTopic && !isMockExam) updateQuestion();
 }
 
 function init() {
@@ -170,6 +194,7 @@ function init() {
     btn.className = 'topic-btn';
     btn.innerText = item.title;
     btn.onclick = () => {
+      isMockExam = false;
       document.querySelectorAll('.topic-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       currentTopic = item;
@@ -177,6 +202,61 @@ function init() {
     };
     grid.appendChild(btn);
   });
+}
+
+function speakText() {
+  let rawText = document.getElementById('qDisplay').innerText;
+  let textToRead = rawText
+    .replace(/Simulacro de Examen.*:/, "Aquí tienes tus preguntas.")
+    .replace(/\(PASADO\)|\(FUTURO\)/g, "")
+    .replace(/HL|OL/g, "")
+    .replace(/[0-9]\./g, ""); 
+
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel(); 
+    const utterance = new SpeechSynthesisUtterance(textToRead);
+    utterance.lang = 'es-ES'; 
+    utterance.rate = 0.9; 
+    window.speechSynthesis.speak(utterance);
+  } else {
+    alert("Tu navegador no soporta audio.");
+  }
+}
+
+function startMockExam() {
+  isMockExam = true;
+  document.querySelectorAll('.topic-btn').forEach(b => b.classList.remove('active'));
+  
+  // 1. Elegimos 3 temas generales DIFERENTES
+  let indices = [...Array(DATA.length).keys()];
+  indices.sort(() => Math.random() - 0.5);
+  
+  const q1 = DATA[indices[0]][currentLevel];
+  const q2 = DATA[indices[1]][currentLevel];
+  const q3 = DATA[indices[2]][currentLevel];
+  
+  // 2. Elegimos 1 de Pasado
+  const pastBank = PAST_QUESTIONS[currentLevel];
+  const qPast = pastBank[Math.floor(Math.random() * pastBank.length)];
+  
+  // 3. Elegimos 1 de Futuro (o Condicional en HL)
+  const futureBank = FUTURE_QUESTIONS[currentLevel];
+  const qFuture = futureBank[Math.floor(Math.random() * futureBank.length)];
+
+  const fullQuestion = `
+    <strong>Simulacro de Examen (${currentLevel}):</strong><br><br>
+    1. ${q1}<br>
+    2. ${q2}<br>
+    3. ${q3}<br>
+    4. ${qPast} (PASADO)<br>
+    5. ${qFuture} (FUTURO/CONDICIONAL)
+  `;
+
+  document.getElementById('exerciseArea').style.display = 'block';
+  document.getElementById('result').style.display = 'none';
+  document.getElementById('qDisplay').innerHTML = fullQuestion;
+  document.getElementById('userInput').value = "";
+  document.getElementById('userInput').placeholder = "Responde a las 5 preguntas aquí...";
 }
 
 function updateQuestion() {
@@ -194,32 +274,32 @@ function resetApp() {
 
 async function analyze() {
   const text = document.getElementById('userInput').value;
-  if(text.length < 2) return alert("Por favor, escribe algo (Please write something).");
+  if(text.length < 5) return alert("Por favor, escribe algo más.");
 
   const btn = document.getElementById('btnAction');
   btn.disabled = true;
-  btn.innerText = "⏳ Analizando/Analyzing...";
+  btn.innerText = "⏳ El examinador está corrigiendo...";
 
-  // PROMPT BLINDADO CONTRA PUNTUACIÓN
+  const questionText = document.getElementById('qDisplay').innerText;
+
+  // CONFIGURACIÓN DEL EXAMINADOR (Incluyendo 'Flash' como modelo)
   const prompt = `
     Role: Spanish Leaving Cert Examiner (Ireland).
     Level: ${currentLevel} (${currentLevel === 'HL' ? 'High/B2' : 'Ordinary/A1-A2'}).
-    Topic Question: "${currentTopic[currentLevel]}"
+    
+    Questions asked: "${questionText}"
     Student Answer: "${text}"
 
     INSTRUCTIONS:
-    1. Feedback MUST be Bilingual: Provide "feedback_es" (Spanish) and "feedback_en" (English translation).
-    2. SCORING - STRICTNESS:
-       - Ordinary Level (OL): Be VERY generous. Brief answers are 100% correct if they convey meaning.
-       - Higher Level (HL): Be strict with GRAMMAR (verbs, concordances) and VOCABULARY. BUT...
+    1. Feedback MUST be Bilingual (Spanish & English).
+    2. SCORING:
+       - Ordinary Level (OL): Be GENEROUS. Communication is key. Ignore grammar mistakes if meaning is clear.
+       - Higher Level (HL): Expect good vocabulary.
+       - MOCK EXAM: Check if Past and Future tenses were used correctly for questions 4 and 5.
     
-    3. ABSOLUTE PROHIBITION (FOR BOTH LEVELS):
-       - DO NOT CHECK PUNCTUATION (commas, dots, question marks).
-       - DO NOT CHECK ACCENTS/TILDES.
-       - It is an ORAL exam. If the student writes "camion" instead of "camión", it is CORRECT (same sound).
-       - If the student writes a run-on sentence without commas, it is CORRECT.
-
-    4. Vocabulary: Accept "cuarto de baño" as standard for "bathroom/toilet".
+    3. PROHIBITIONS:
+       - DO NOT penalize missing commas, periods, or tildes (It's an oral exam).
+       - Accept "cuarto de baño", "coche", "autobús".
 
     OUTPUT JSON ONLY:
     {
@@ -230,13 +310,14 @@ async function analyze() {
         {
           "original": "error text", 
           "correction": "corrected text", 
-          "explanation_en": "Brief explanation in English"
+          "explanation_en": "Brief explanation"
         }
       ]
     }
   `;
 
   try {
+    // ⚠️ MANTENEMOS GEMINI-FLASH-LATEST QUE ES EL QUE TE GUSTABA
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${API_KEY}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -244,16 +325,13 @@ async function analyze() {
     });
 
     const data = await response.json();
-
-    if (data.error) throw new Error("Google Error: " + data.error.message);
-    if (!data.candidates) throw new Error("No response from AI");
+    
+    if (data.error) throw new Error(data.error.message);
+    if (!data.candidates) throw new Error("No response");
 
     const cleanJson = data.candidates[0].content.parts[0].text.replace(/```json|```/g, "").trim();
-    let result;
-    try {
-        const jsonMatch = cleanJson.match(/\{[\s\S]*\}/);
-        result = JSON.parse(jsonMatch ? jsonMatch[0] : cleanJson);
-    } catch (e) { throw new Error("JSON Error"); }
+    const jsonMatch = cleanJson.match(/\{[\s\S]*\}/); 
+    const result = JSON.parse(jsonMatch ? jsonMatch[0] : cleanJson);
     
     showResult(result);
 
@@ -271,7 +349,10 @@ function showResult(data) {
   
   const scoreDiv = document.getElementById('scoreDisplay');
   scoreDiv.innerText = `Nota: ${data.score}%`;
-  scoreDiv.style.color = data.score >= 85 ? "#166534" : (data.score >= 50 ? "#854d0e" : "#991b1b");
+  
+  if(data.score >= 85) scoreDiv.style.color = "#166534"; 
+  else if(data.score >= 50) scoreDiv.style.color = "#854d0e"; 
+  else scoreDiv.style.color = "#991b1b"; 
 
   document.getElementById('fbES').innerText = "🇪🇸 " + data.feedback_es;
   document.getElementById('fbEN').innerText = "🇬🇧 " + data.feedback_en;
