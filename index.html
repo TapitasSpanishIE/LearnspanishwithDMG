@@ -242,21 +242,88 @@ function updateQuestion() { document.getElementById('exerciseArea').style.displa
 function resetApp() { document.getElementById('result').style.display = 'none'; document.getElementById('exerciseArea').style.display = 'block'; }
 
 async function analyze() {
-  const t = document.getElementById('userInput').value; if(t.length < 5) return alert("Write more...");
-  const b = document.getElementById('btnAction'); b.disabled = true; b.innerText = "⏳ Grading...";
+  const t = document.getElementById('userInput').value; 
+  if(t.length < 5) return alert("Por favor, di algo más...");
+  
+  const b = document.getElementById('btnAction'); 
+  b.disabled = true; 
+  b.innerText = "⏳ Grading...";
+
+  // 🔥 PROMPT MEJORADO Y BLINDADO CONTRA PUNTUACIÓN 🔥
+  const prompt = `
+    ACT AS: Sympathetic Leaving Cert Spanish Oral Examiner (Ireland).
+    CONTEXT: The input is RAW VOICE TRANSCRIPTION. It has NO PUNCTUATION and NO CAPITALIZATION.
+    
+    CRITICAL INSTRUCTIONS:
+    1. IGNORE completely the lack of punctuation, commas, or periods.
+    2. IGNORE run-on sentences. Treat the input as a stream of spoken consciousness.
+    3. CURRENT LEVEL: ${currentLevel}.
+       - If Ordinary Level (OL): Be VERY GENEROUS. If the Spanish is understandable, score HIGH (80-100%). Do not be pedantic.
+       - If Higher Level (HL): Look for vocabulary/tenses, but still ignore writing mechanics.
+    
+    TASK:
+    Evaluate the spoken answer: "${t}"
+    
+    OUTPUT JSON ONLY:
+    {
+      "score": (0-100 based on communication, NOT writing),
+      "feedback_es": "Brief motivating feedback in Spanish",
+      "feedback_en": "Brief feedback in English focusing on what they said, not how they wrote it",
+      "errors": [
+        {
+          "original": "error text", 
+          "correction": "correction", 
+          "explanation_en": "Brief explanation (Grammar/Vocab only, ignore punctuation)"
+        }
+      ]
+    }
+  `;
+
   try {
     const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${API_KEY}`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [{ text: "Examen Oral LC. Level: " + currentLevel + ". Ignore punctuation/accents. Feedback Bilingual JSON: {score, feedback_es, feedback_en, errors: [{original, correction, explanation_en}]} Answer: " + t }] }] })
+      method: 'POST', 
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
     });
-    const d = await r.json(); const j = JSON.parse(d.candidates[0].content.parts[0].text.replace(/```json|```/g, "").trim());
-    document.getElementById('exerciseArea').style.display = 'none'; document.getElementById('result').style.display = 'block';
+    
+    const d = await r.json(); 
+    // Limpieza extra por si la IA mete bloques de código
+    const cleanJson = d.candidates[0].content.parts[0].text.replace(/```json|```/g, "").trim();
+    const j = JSON.parse(cleanJson);
+    
+    document.getElementById('exerciseArea').style.display = 'none'; 
+    document.getElementById('result').style.display = 'block';
     document.getElementById('userResponseText').innerText = t;
-    document.getElementById('scoreDisplay').innerText = `Score: ${j.score}%`;
-    document.getElementById('fbES').innerText = "🇪🇸 " + j.feedback_es; document.getElementById('fbEN').innerText = "🇬🇧 " + j.feedback_en;
-    const l = document.getElementById('errorsList'); l.innerHTML = "";
-    j.errors.forEach(e => { l.innerHTML += `<div class="error-item"><span style="text-decoration: line-through;">${e.original}</span> ➡️ <b>${e.correction}</b> (💡 ${e.explanation_en})</div>`; });
-  } catch (e) { alert("Error: " + e.message); } finally { b.disabled = false; b.innerText = "✨ Evaluate Answer"; }
+    
+    // Lógica visual de la nota
+    const s = document.getElementById('scoreDisplay');
+    s.innerText = `Score: ${j.score}%`;
+    
+    if (j.score >= 85) s.style.color = "#166534"; // Verde oscuro
+    else if (j.score >= 50) s.style.color = "#ca8a04"; // Amarillo oscuro
+    else s.style.color = "#991b1b"; // Rojo
+
+    document.getElementById('fbES').innerText = "🇪🇸 " + j.feedback_es; 
+    document.getElementById('fbEN').innerText = "🇬🇧 " + j.feedback_en;
+    
+    const l = document.getElementById('errorsList'); 
+    l.innerHTML = "";
+    
+    if(j.errors && j.errors.length > 0) {
+        j.errors.forEach(e => { 
+            l.innerHTML += `<div class="error-item"><span style="text-decoration: line-through;">${e.original}</span> ➡️ <b>${e.correction}</b> (💡 ${e.explanation_en})</div>`; 
+        });
+    } else {
+        l.innerHTML = "<div style='color:#166534; font-weight:bold;'>✅ Perfect! No significant errors found.</div>";
+    }
+
+  } catch (e) { 
+    console.error(e);
+    alert("Error communicating with AI evaluator. Please try again."); 
+  } finally { 
+    b.disabled = false; 
+    b.innerText = "✨ Evaluate Answer"; 
+  }
 }
 
 // ===========================================
