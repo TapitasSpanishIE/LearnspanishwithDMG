@@ -135,7 +135,7 @@
         <hr style="margin: 20px 0; border: 0; border-top: 1px solid #e2e8f0;">
         <div id="errorsList"></div>
       </div>
-      <button class="btn-main" style="margin-top:20px; background:#e2e8f0; color:var(--text);" onclick="resetApp()">🔄 Try another topic</button>
+      <button id="btnReset" class="btn-main" style="margin-top:20px; background:#e2e8f0; color:var(--text);" onclick="resetApp()">🔄 Try another topic</button>
     </div>
   </div>
 
@@ -210,6 +210,8 @@ function switchTab(tab) {
 let currentLevel = 'OL';
 let currentTopic = null;
 let isMockExam = false; 
+let mockQuestions = []; // Array para guardar las 5 preguntas del simulacro
+let mockIndex = 0;      // Para saber en qué pregunta estamos
 
 // Base de datos de Conversación (15 Temas)
 const DATA = [
@@ -233,13 +235,95 @@ const DATA = [
 const PAST_Q = ["¿Qué hiciste el fin de semana pasado?", "¿Adónde fuiste el verano pasado?", "¿Qué hiciste ayer?"];
 const FUT_Q = ["¿Qué harás mañana?", "¿Qué planes tienes para el verano?", "¿Qué harás tras el colegio?"];
 
-function setLevel(lvl) { currentLevel = lvl; document.getElementById('btnOL').className = lvl === 'OL' ? 'level-btn active' : 'level-btn'; document.getElementById('btnHL').className = lvl === 'HL' ? 'level-btn hl active' : 'level-btn'; if(currentTopic && !isMockExam) updateQuestion(); }
-function initConv() { const g = document.getElementById('topicGrid'); DATA.forEach((item) => { const b = document.createElement('button'); b.className = 'topic-btn'; b.innerText = item.title; b.onclick = () => { isMockExam = false; document.querySelectorAll('.topic-btn').forEach(x => x.classList.remove('active')); b.classList.add('active'); currentTopic = item; updateQuestion(); }; g.appendChild(b); }); }
-function speakText() { const t = document.getElementById('qDisplay').innerText.replace(/\(PASADO\)|\(FUTURO\)/g, "").replace(/HL|OL/g, "").replace(/[0-9]\./g, ""); if ('speechSynthesis' in window) { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t); u.lang = 'es-ES'; u.rate = 0.9; window.speechSynthesis.speak(u); } }
+function setLevel(lvl) { 
+    currentLevel = lvl; 
+    document.getElementById('btnOL').className = lvl === 'OL' ? 'level-btn active' : 'level-btn'; 
+    document.getElementById('btnHL').className = lvl === 'HL' ? 'level-btn hl active' : 'level-btn'; 
+    if(currentTopic && !isMockExam) updateQuestion(); 
+}
 
-function startMockExam() { isMockExam = true; document.querySelectorAll('.topic-btn').forEach(x => x.classList.remove('active')); let i = [...Array(DATA.length).keys()].sort(() => Math.random() - 0.5); document.getElementById('exerciseArea').style.display = 'block'; document.getElementById('result').style.display = 'none'; document.getElementById('qDisplay').innerHTML = `<strong>Mock Exam (${currentLevel}):</strong><br>1. ${DATA[i[0]][currentLevel]}<br>2. ${DATA[i[1]][currentLevel]}<br>3. ${DATA[i[2]][currentLevel]}<br>4. ${PAST_Q[Math.floor(Math.random()*3)]} (PASADO)<br>5. ${FUT_Q[Math.floor(Math.random()*3)]} (FUTURO)`; }
-function updateQuestion() { document.getElementById('exerciseArea').style.display = 'block'; document.getElementById('result').style.display = 'none'; document.getElementById('qDisplay').innerHTML = currentTopic[currentLevel]; }
-function resetApp() { document.getElementById('result').style.display = 'none'; document.getElementById('exerciseArea').style.display = 'block'; }
+function initConv() { 
+    const g = document.getElementById('topicGrid'); 
+    DATA.forEach((item) => { 
+        const b = document.createElement('button'); 
+        b.className = 'topic-btn'; 
+        b.innerText = item.title; 
+        b.onclick = () => { 
+            isMockExam = false; 
+            document.querySelectorAll('.topic-btn').forEach(x => x.classList.remove('active')); 
+            b.classList.add('active'); 
+            currentTopic = item; 
+            updateQuestion(); 
+        }; 
+        g.appendChild(b); 
+    }); 
+}
+
+function speakText() { 
+    // Limpia etiquetas HTML para que no lea "Strong Question..."
+    const rawHTML = document.getElementById('qDisplay').innerHTML;
+    const t = rawHTML.replace(/<[^>]*>/g, " ").replace(/\(PASADO\)|\(FUTURO\)/g, "").replace(/HL|OL/g, "").replace(/[0-9]\./g, ""); 
+    
+    if ('speechSynthesis' in window) { 
+        window.speechSynthesis.cancel(); 
+        const u = new SpeechSynthesisUtterance(t); 
+        u.lang = 'es-ES'; 
+        u.rate = 0.9; 
+        window.speechSynthesis.speak(u); 
+    } 
+}
+
+// === LÓGICA DEL MOCK EXAM SECUENCIAL ===
+
+function startMockExam() { 
+    isMockExam = true; 
+    mockIndex = 0; // Empezamos por la primera
+    document.querySelectorAll('.topic-btn').forEach(x => x.classList.remove('active')); 
+    
+    // Seleccionamos las 5 preguntas
+    let i = [...Array(DATA.length).keys()].sort(() => Math.random() - 0.5); 
+    mockQuestions = [
+        DATA[i[0]][currentLevel],
+        DATA[i[1]][currentLevel],
+        DATA[i[2]][currentLevel],
+        PAST_Q[Math.floor(Math.random()*3)] + " (PASADO)",
+        FUT_Q[Math.floor(Math.random()*3)] + " (FUTURO)"
+    ];
+    
+    showMockQuestion();
+}
+
+function showMockQuestion() {
+    document.getElementById('exerciseArea').style.display = 'block'; 
+    document.getElementById('result').style.display = 'none'; 
+    // Mostramos solo la pregunta actual con el contador
+    document.getElementById('qDisplay').innerHTML = `<strong>Question ${mockIndex + 1}/5:</strong><br><br>${mockQuestions[mockIndex]}`;
+    document.getElementById('userInput').value = "";
+}
+
+function nextMockQuestion() {
+    mockIndex++;
+    showMockQuestion();
+}
+
+function updateQuestion() { 
+    document.getElementById('exerciseArea').style.display = 'block'; 
+    document.getElementById('result').style.display = 'none'; 
+    document.getElementById('qDisplay').innerHTML = currentTopic[currentLevel]; 
+}
+
+function resetApp() { 
+    document.getElementById('result').style.display = 'none'; 
+    document.getElementById('exerciseArea').style.display = 'block'; 
+    if(isMockExam) {
+        // Si reseteamos en medio de un mock, salimos del modo mock
+        isMockExam = false;
+        document.getElementById('userInput').value = "";
+        document.getElementById('qDisplay').innerHTML = "Select a topic or start a new Mock Exam.";
+    } else {
+        document.getElementById('userInput').value = "";
+    }
+}
 
 async function analyze() {
   const t = document.getElementById('userInput').value; 
@@ -249,32 +333,33 @@ async function analyze() {
   b.disabled = true; 
   b.innerText = "⏳ Grading...";
 
-  // 🔥 PROMPT MEJORADO Y BLINDADO CONTRA PUNTUACIÓN 🔥
+  // Determinamos qué pregunta estamos evaluando
+  const questionContext = isMockExam ? mockQuestions[mockIndex] : currentTopic[currentLevel];
+
+  // 🔥 PROMPT MEJORADO 🔥
   const prompt = `
     ACT AS: Sympathetic Leaving Cert Spanish Oral Examiner (Ireland).
     CONTEXT: The input is RAW VOICE TRANSCRIPTION. It has NO PUNCTUATION and NO CAPITALIZATION.
     
+    QUESTION ASKED: "${questionContext}"
+    
     CRITICAL INSTRUCTIONS:
-    1. IGNORE completely the lack of punctuation, commas, or periods.
-    2. IGNORE run-on sentences. Treat the input as a stream of spoken consciousness.
+    1. IGNORE completely the lack of punctuation.
+    2. IGNORE run-on sentences. 
     3. CURRENT LEVEL: ${currentLevel}.
-       - If Ordinary Level (OL): Be VERY GENEROUS. If the Spanish is understandable, score HIGH (80-100%). Do not be pedantic.
+       - If Ordinary Level (OL): Be VERY GENEROUS. If the Spanish is understandable, score HIGH (80-100%).
        - If Higher Level (HL): Look for vocabulary/tenses, but still ignore writing mechanics.
     
     TASK:
-    Evaluate the spoken answer: "${t}"
+    Evaluate the student's answer: "${t}"
     
     OUTPUT JSON ONLY:
     {
-      "score": (0-100 based on communication, NOT writing),
+      "score": (0-100 based on communication),
       "feedback_es": "Brief motivating feedback in Spanish",
-      "feedback_en": "Brief feedback in English focusing on what they said, not how they wrote it",
+      "feedback_en": "Brief feedback in English",
       "errors": [
-        {
-          "original": "error text", 
-          "correction": "correction", 
-          "explanation_en": "Brief explanation (Grammar/Vocab only, ignore punctuation)"
-        }
+        { "original": "error", "correction": "fix", "explanation_en": "reason" }
       ]
     }
   `;
@@ -287,7 +372,6 @@ async function analyze() {
     });
     
     const d = await r.json(); 
-    // Limpieza extra por si la IA mete bloques de código
     const cleanJson = d.candidates[0].content.parts[0].text.replace(/```json|```/g, "").trim();
     const j = JSON.parse(cleanJson);
     
@@ -295,13 +379,9 @@ async function analyze() {
     document.getElementById('result').style.display = 'block';
     document.getElementById('userResponseText').innerText = t;
     
-    // Lógica visual de la nota
     const s = document.getElementById('scoreDisplay');
     s.innerText = `Score: ${j.score}%`;
-    
-    if (j.score >= 85) s.style.color = "#166534"; // Verde oscuro
-    else if (j.score >= 50) s.style.color = "#ca8a04"; // Amarillo oscuro
-    else s.style.color = "#991b1b"; // Rojo
+    s.style.color = j.score >= 85 ? "#166534" : (j.score >= 50 ? "#ca8a04" : "#991b1b");
 
     document.getElementById('fbES').innerText = "🇪🇸 " + j.feedback_es; 
     document.getElementById('fbEN').innerText = "🇬🇧 " + j.feedback_en;
@@ -315,6 +395,21 @@ async function analyze() {
         });
     } else {
         l.innerHTML = "<div style='color:#166534; font-weight:bold;'>✅ Perfect! No significant errors found.</div>";
+    }
+
+    // --- LÓGICA DEL BOTÓN SIGUIENTE EN MOCK EXAM ---
+    const btnReset = document.getElementById('btnReset');
+    if (isMockExam) {
+        if (mockIndex < 4) {
+            btnReset.innerText = "➡️ Next Question";
+            btnReset.onclick = nextMockQuestion; // Asignamos la función de siguiente
+        } else {
+            btnReset.innerText = "🏁 Finish Exam";
+            btnReset.onclick = resetApp; // Al final, reseteamos
+        }
+    } else {
+        btnReset.innerText = "🔄 Try another topic";
+        btnReset.onclick = resetApp;
     }
 
   } catch (e) { 
